@@ -481,6 +481,7 @@
     animation: modalIn 0.2s ease;
   }
   @keyframes modalIn { from { transform: translateY(20px); opacity:0; } to { transform:translateY(0); opacity:1; } }
+  @keyframes slideUp { from { transform: translateY(100%); opacity:0; } to { transform: translateY(0); opacity:1; } }
   .modal-header {
     padding: 18px 22px 14px; border-bottom: 1px solid #2a2a2a;
     display: flex; align-items: center; justify-content: space-between;
@@ -1039,17 +1040,6 @@
       </div>
     </div>
 
-    <!-- Saved Records -->
-    <div class="card" id="savedRecordsCard">
-      <div class="card-header" style="display:flex;align-items:center;justify-content:space-between;">
-        <span><span class="dot"></span> Saved Records</span>
-        <button class="qbtn" onclick="loadSavedRecords()" style="font-size:0.7rem;">🔄 Refresh</button>
-      </div>
-      <div class="card-body" style="padding:0;">
-        <div id="savedRecordsList" style="min-height:48px;padding:10px 16px;font-size:0.8rem;color:#888;">Loading…</div>
-      </div>
-    </div>
-
     <!-- Submit Bar -->
     <div class="submit-bar">
       <div class="submit-bar-info">
@@ -1059,6 +1049,7 @@
       <div class="submit-bar-actions">
         <button class="btn btn-outline" onclick="clearAll()">🗑 Clear Form</button>
         <button class="btn btn-submit" onclick="submitPeriodData()">✅ Submit &amp; Save Period</button>
+        <button class="btn btn-outline" onclick="toggleSavedRecordsPanel()" id="savedRecordsBtn" title="View Saved Records" style="padding:10px 14px;font-size:1.1rem;line-height:1;">🗄️</button>
       </div>
     </div>
 
@@ -1801,6 +1792,51 @@
 </div><!-- /.audit-container -->
 </div><!-- /#auditPage -->
 
+<!-- ════════════ SAVED RECORDS PANEL ════════════ -->
+<div id="savedRecordsOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:6000;align-items:flex-end;justify-content:center;" onclick="if(event.target===this)closeSavedRecordsPanel()">
+  <div style="background:white;width:100%;max-width:900px;max-height:82vh;border-radius:14px 14px 0 0;display:flex;flex-direction:column;box-shadow:0 -8px 40px rgba(0,0,0,0.25);animation:slideUp 0.22s ease;">
+    <!-- Header -->
+    <div style="padding:16px 20px 12px;border-bottom:1px solid #e8eef4;display:flex;align-items:center;gap:12px;flex-shrink:0;">
+      <span style="font-size:1.3rem;">🗄️</span>
+      <div style="flex:1;">
+        <div style="font-weight:700;font-size:0.95rem;color:#1a2a3a;">Saved Records</div>
+        <div style="font-size:0.7rem;color:#9ab0c0;font-family:'IBM Plex Mono',monospace;" id="savedRecordsCount">—</div>
+      </div>
+      <button onclick="loadSavedRecords()" title="Refresh" style="background:none;border:1px solid #d0dce8;color:#5a7080;border-radius:6px;padding:5px 10px;cursor:pointer;font-size:0.78rem;">🔄 Refresh</button>
+      <button onclick="closeSavedRecordsPanel()" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:#9ab0c0;padding:0 4px;line-height:1;">✕</button>
+    </div>
+    <!-- Filters -->
+    <div style="padding:10px 20px;border-bottom:1px solid #eef3f8;display:flex;gap:10px;flex-wrap:wrap;flex-shrink:0;background:#fafbfd;">
+      <div style="display:flex;align-items:center;gap:6px;">
+        <label style="font-size:0.72rem;font-weight:700;color:#5a7080;text-transform:uppercase;letter-spacing:0.06em;">🏥 Ward</label>
+        <select id="srFilterWard" onchange="renderSavedRecords()" style="font-size:0.8rem;padding:5px 10px;border:1px solid #d0dce8;border-radius:6px;outline:none;background:white;color:#1a2a3a;">
+          <option value="">All Wards</option>
+          <option>Female Ward</option>
+          <option>Male Ward</option>
+          <option>Paediatric Ward</option>
+          <option>Maternity Ward</option>
+          <option>Surgical Ward</option>
+        </select>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <label style="font-size:0.72rem;font-weight:700;color:#5a7080;text-transform:uppercase;letter-spacing:0.06em;">📅 Month</label>
+        <select id="srFilterMonth" onchange="renderSavedRecords()" style="font-size:0.8rem;padding:5px 10px;border:1px solid #d0dce8;border-radius:6px;outline:none;background:white;color:#1a2a3a;">
+          <option value="">All Months</option>
+          <option>January</option><option>February</option><option>March</option>
+          <option>April</option><option>May</option><option>June</option>
+          <option>July</option><option>August</option><option>September</option>
+          <option>October</option><option>November</option><option>December</option>
+        </select>
+      </div>
+      <button onclick="document.getElementById('srFilterWard').value='';document.getElementById('srFilterMonth').value='';renderSavedRecords();" style="font-size:0.72rem;padding:5px 10px;border:1px solid #d0dce8;border-radius:6px;background:white;color:#5a7080;cursor:pointer;">✕ Clear Filters</button>
+    </div>
+    <!-- Table -->
+    <div style="overflow-y:auto;flex:1;" id="savedRecordsList">
+      <div style="padding:20px;color:#aaa;text-align:center;">Loading…</div>
+    </div>
+  </div>
+</div>
+
 <!-- ════════════ AUDIT FORM PREVIEW POPUP ════════════ -->
 <div id="auditPreviewOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:7000;overflow-y:auto;padding:24px 16px;">
   <div style="background:white;max-width:860px;margin:0 auto;border-radius:12px;overflow:hidden;box-shadow:0 16px 60px rgba(0,0,0,0.4);">
@@ -1991,7 +2027,7 @@ diseases.forEach(d => {
 // trigger it explicitly on load once all functions are defined)
 updateSubmitLabel();
 // Load any existing data for the default period once the DB functions are available
-window.addEventListener('DOMContentLoaded', () => { loadPeriodData(); loadSavedRecords(); });
+window.addEventListener('DOMContentLoaded', () => { loadPeriodData(); });
 
 // ─── Calc ─────────────────────────────────────────────────────────────────────
 function gv(el) { return parseInt(el.value)||0; }
@@ -2050,7 +2086,6 @@ function switchTab(tab) {
   }
   if (tab==='explorer') vzInit();
   if (tab==='audit')    auditInit();
-  if (tab==='entry')    loadSavedRecords();
 }
 
 // ─── Clear ────────────────────────────────────────────────────────────────────
@@ -2254,7 +2289,8 @@ async function submitPeriodData() {
   setTimeout(() => b.remove(), 4000);
 
   checkSubmitState();
-  loadSavedRecords();
+  // Refresh saved records panel if it's open
+  if (document.getElementById('savedRecordsOverlay').style.display === 'flex') loadSavedRecords();
   window.scrollTo({top: 0, behavior: 'smooth'});
 }
 
@@ -3943,55 +3979,92 @@ function auditPrintPreview() {
   win.print();
 }
 
-// ── Saved Records (Data Entry) ─────────────────────────
-async function loadSavedRecords() {
-  const list = document.getElementById('savedRecordsList');
-  list.innerHTML = '<span style="color:#888;">Loading…</span>';
-  try {
-    const all = await dbGetAll();
-    if (!all.length) { list.innerHTML = '<span style="color:#aaa;">No saved records yet.</span>'; return; }
-    all.sort((a,b) => (b.submittedAt||'').localeCompare(a.submittedAt||''));
-    list.innerHTML = `
-      <table style="width:100%;border-collapse:collapse;font-size:0.78rem;">
-        <thead>
-          <tr style="background:#f0f5fa;">
-            <th style="padding:8px 12px;text-align:left;border-bottom:2px solid #d0dce8;color:#1a5276;">Ward</th>
-            <th style="padding:8px 12px;text-align:left;border-bottom:2px solid #d0dce8;color:#1a5276;">Period</th>
-            <th style="padding:8px 12px;text-align:center;border-bottom:2px solid #d0dce8;color:#1a5276;">Admissions</th>
-            <th style="padding:8px 12px;text-align:center;border-bottom:2px solid #d0dce8;color:#1a5276;">Deaths</th>
-            <th style="padding:8px 12px;text-align:left;border-bottom:2px solid #d0dce8;color:#1a5276;">Saved</th>
-            <th style="padding:8px 12px;border-bottom:2px solid #d0dce8;"></th>
-          </tr>
-        </thead>
-        <tbody>
-          ${all.map(r => `
-          <tr style="border-bottom:1px solid #eef3f8;" onmouseover="this.style.background='#f6fbff'" onmouseout="this.style.background=''">
-            <td style="padding:8px 12px;font-weight:600;color:#1a3a5c;">${r.ward}</td>
-            <td style="padding:8px 12px;">${r.month} ${r.year}</td>
-            <td style="padding:8px 12px;text-align:center;font-family:'IBM Plex Mono',monospace;">${r.totalAdm||0}</td>
-            <td style="padding:8px 12px;text-align:center;font-family:'IBM Plex Mono',monospace;color:#c0392b;">${r.deaths||0}</td>
-            <td style="padding:8px 12px;font-size:0.7rem;color:#888;">${r.submittedAt ? new Date(r.submittedAt).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : '—'}</td>
-            <td style="padding:8px 12px;white-space:nowrap;display:flex;gap:6px;">
-              <button class="qbtn" style="font-size:0.68rem;" onclick="editSavedRecord('${r.key.replace(/'/g,"\\'")}')">✏️ Edit</button>
-              <button class="qbtn" style="font-size:0.68rem;color:#e74c3c;border-color:#e74c3c;" onclick="deleteSavedRecord('${r.key.replace(/'/g,"\\'")}','${(r.ward+' '+r.month+' '+r.year).replace(/'/g,"\\'")}')">🗑 Delete</button>
-            </td>
-          </tr>`).join('')}
-        </tbody>
-      </table>`;
-  } catch(e) {
-    list.innerHTML = `<span style="color:#e74c3c;">Failed to load records: ${e.message}</span>`;
+// ── Saved Records Panel (Data Entry) ──────────────────
+let _savedRecordsCache = [];
+
+function toggleSavedRecordsPanel() {
+  const overlay = document.getElementById('savedRecordsOverlay');
+  if (overlay.style.display === 'none' || !overlay.style.display) {
+    overlay.style.display = 'flex';
+    loadSavedRecords();
+  } else {
+    closeSavedRecordsPanel();
   }
 }
 
+function closeSavedRecordsPanel() {
+  document.getElementById('savedRecordsOverlay').style.display = 'none';
+}
+
+async function loadSavedRecords() {
+  const list = document.getElementById('savedRecordsList');
+  list.innerHTML = '<div style="padding:20px;color:#aaa;text-align:center;">Loading…</div>';
+  try {
+    const all = await dbGetAll();
+    all.sort((a,b) => (b.submittedAt||'').localeCompare(a.submittedAt||''));
+    _savedRecordsCache = all;
+    renderSavedRecords();
+  } catch(e) {
+    list.innerHTML = `<div style="padding:20px;color:#e74c3c;text-align:center;">Failed to load: ${e.message}</div>`;
+  }
+}
+
+function renderSavedRecords() {
+  const list       = document.getElementById('savedRecordsList');
+  const countEl    = document.getElementById('savedRecordsCount');
+  const wardFilter  = document.getElementById('srFilterWard').value;
+  const monthFilter = document.getElementById('srFilterMonth').value;
+
+  let data = _savedRecordsCache;
+  if (wardFilter)  data = data.filter(r => r.ward  === wardFilter);
+  if (monthFilter) data = data.filter(r => r.month === monthFilter);
+
+  countEl.textContent = `${data.length} of ${_savedRecordsCache.length} record${_savedRecordsCache.length!==1?'s':''}`;
+
+  if (!data.length) {
+    list.innerHTML = '<div style="padding:32px;color:#aaa;text-align:center;">No records match the selected filters.</div>';
+    return;
+  }
+
+  list.innerHTML = `
+    <table style="width:100%;border-collapse:collapse;font-size:0.8rem;">
+      <thead>
+        <tr style="background:#f0f5fa;position:sticky;top:0;z-index:1;">
+          <th style="padding:10px 14px;text-align:left;border-bottom:2px solid #d0dce8;color:#1a5276;font-family:'IBM Plex Mono',monospace;font-size:0.65rem;letter-spacing:0.06em;text-transform:uppercase;">Ward</th>
+          <th style="padding:10px 14px;text-align:left;border-bottom:2px solid #d0dce8;color:#1a5276;font-family:'IBM Plex Mono',monospace;font-size:0.65rem;letter-spacing:0.06em;text-transform:uppercase;">Period</th>
+          <th style="padding:10px 14px;text-align:center;border-bottom:2px solid #d0dce8;color:#1a5276;font-family:'IBM Plex Mono',monospace;font-size:0.65rem;letter-spacing:0.06em;text-transform:uppercase;">Admissions</th>
+          <th style="padding:10px 14px;text-align:center;border-bottom:2px solid #d0dce8;color:#1a5276;font-family:'IBM Plex Mono',monospace;font-size:0.65rem;letter-spacing:0.06em;text-transform:uppercase;">Deaths</th>
+          <th style="padding:10px 14px;text-align:left;border-bottom:2px solid #d0dce8;color:#1a5276;font-family:'IBM Plex Mono',monospace;font-size:0.65rem;letter-spacing:0.06em;text-transform:uppercase;">Saved</th>
+          <th style="padding:10px 14px;border-bottom:2px solid #d0dce8;"></th>
+        </tr>
+      </thead>
+      <tbody>
+        ${data.map(r => `
+        <tr style="border-bottom:1px solid #eef3f8;transition:background 0.1s;" onmouseover="this.style.background='#f4f9ff'" onmouseout="this.style.background=''">
+          <td style="padding:10px 14px;font-weight:600;color:#1a3a5c;">${r.ward}</td>
+          <td style="padding:10px 14px;color:#2c4050;">${r.month} ${r.year}</td>
+          <td style="padding:10px 14px;text-align:center;font-family:'IBM Plex Mono',monospace;font-weight:600;">${r.totalAdm||0}</td>
+          <td style="padding:10px 14px;text-align:center;font-family:'IBM Plex Mono',monospace;color:#c0392b;font-weight:600;">${r.deaths||0}</td>
+          <td style="padding:10px 14px;font-size:0.72rem;color:#9ab0c0;">${r.submittedAt ? new Date(r.submittedAt).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : '—'}</td>
+          <td style="padding:10px 14px;">
+            <div style="display:flex;gap:6px;justify-content:flex-end;">
+              <button class="qbtn" style="font-size:0.7rem;" onclick="editSavedRecord('${r.key.replace(/'/g,"\\'")}')">✏️ Edit</button>
+              <button class="qbtn" style="font-size:0.7rem;color:#e74c3c;border-color:#ffc0b0;" onclick="deleteSavedRecord('${r.key.replace(/'/g,"\\'")}','${(r.ward+' '+r.month+' '+r.year).replace(/'/g,"\\'")}')">🗑 Delete</button>
+            </div>
+          </td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+
 async function editSavedRecord(key) {
-  const all = await dbGetAll();
-  const rec = all.find(r => r.key === key);
+  const rec = _savedRecordsCache.find(r => r.key === key);
   if (!rec) return;
-  // Set ward/month/year selectors
   document.getElementById('ward').value  = rec.ward;
   document.getElementById('month').value = rec.month;
   document.getElementById('year').value  = rec.year;
-  updateSub(); // this calls loadPeriodData which fills the form
+  closeSavedRecordsPanel();
+  updateSub(); // calls loadPeriodData which fills the form
   window.scrollTo({top: 0, behavior: 'smooth'});
 }
 
@@ -3999,7 +4072,6 @@ async function deleteSavedRecord(key, label) {
   if (!confirm(`Delete data for "${label}"? This cannot be undone.`)) return;
   try {
     await dbDelete(key);
-    // If this was the currently loaded period, clear the form
     const ward  = document.getElementById('ward').value;
     const month = document.getElementById('month').value;
     const year  = document.getElementById('year').value;
@@ -4008,7 +4080,7 @@ async function deleteSavedRecord(key, label) {
       document.getElementById('deathsAuto').value='';
       checkSubmitState();
     }
-    loadSavedRecords();
+    loadSavedRecords(); // refresh panel
   } catch(e) {
     alert('Delete failed: ' + e.message);
   }

@@ -1039,6 +1039,17 @@
       </div>
     </div>
 
+    <!-- Saved Records -->
+    <div class="card" id="savedRecordsCard">
+      <div class="card-header" style="display:flex;align-items:center;justify-content:space-between;">
+        <span><span class="dot"></span> Saved Records</span>
+        <button class="qbtn" onclick="loadSavedRecords()" style="font-size:0.7rem;">🔄 Refresh</button>
+      </div>
+      <div class="card-body" style="padding:0;">
+        <div id="savedRecordsList" style="min-height:48px;padding:10px 16px;font-size:0.8rem;color:#888;">Loading…</div>
+      </div>
+    </div>
+
     <!-- Submit Bar -->
     <div class="submit-bar">
       <div class="submit-bar-info">
@@ -1778,6 +1789,7 @@
         <!-- Save bar -->
         <div class="audit-save-bar">
           <button class="btn btn-audit-save" onclick="auditSaveCase()">💾 Save Case</button>
+          <button class="btn btn-primary" onclick="auditGenerateForm()" style="background:linear-gradient(135deg,#1a3a5c,#1a5c3a);">📄 Generate Form</button>
           <button class="btn btn-audit-new" onclick="auditNewCase()">+ New Case</button>
           <span class="save-status" id="auditSaveStatus"></span>
         </div>
@@ -1788,6 +1800,23 @@
   </div><!-- /.audit-layout -->
 </div><!-- /.audit-container -->
 </div><!-- /#auditPage -->
+
+<!-- ════════════ AUDIT FORM PREVIEW POPUP ════════════ -->
+<div id="auditPreviewOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:7000;overflow-y:auto;padding:24px 16px;">
+  <div style="background:white;max-width:860px;margin:0 auto;border-radius:12px;overflow:hidden;box-shadow:0 16px 60px rgba(0,0,0,0.4);">
+    <div style="background:linear-gradient(135deg,#1a3a5c,#1a5c3a);color:white;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;opacity:0.8;">Paediatric Death Audit</div>
+        <div style="font-size:1rem;font-weight:700;margin-top:2px;" id="previewTitle">Death Review Form</div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <button onclick="auditPrintPreview()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:white;padding:7px 14px;border-radius:6px;cursor:pointer;font-size:0.8rem;font-family:'IBM Plex Sans',sans-serif;">🖨 Print</button>
+        <button onclick="document.getElementById('auditPreviewOverlay').style.display='none'" style="background:none;border:none;color:white;font-size:1.4rem;cursor:pointer;padding:0 4px;line-height:1;">✕</button>
+      </div>
+    </div>
+    <div id="auditPreviewBody" style="padding:24px;font-family:'IBM Plex Sans',sans-serif;font-size:0.84rem;color:#1a2a3a;line-height:1.6;"></div>
+  </div>
+</div>
 
 <!-- ════════════ PHOTO EXTRACTION MODAL ════════════ -->
 <div class="modal-overlay" id="photoModal">
@@ -1962,7 +1991,7 @@ diseases.forEach(d => {
 // trigger it explicitly on load once all functions are defined)
 updateSubmitLabel();
 // Load any existing data for the default period once the DB functions are available
-window.addEventListener('DOMContentLoaded', () => loadPeriodData());
+window.addEventListener('DOMContentLoaded', () => { loadPeriodData(); loadSavedRecords(); });
 
 // ─── Calc ─────────────────────────────────────────────────────────────────────
 function gv(el) { return parseInt(el.value)||0; }
@@ -2021,6 +2050,7 @@ function switchTab(tab) {
   }
   if (tab==='explorer') vzInit();
   if (tab==='audit')    auditInit();
+  if (tab==='entry')    loadSavedRecords();
 }
 
 // ─── Clear ────────────────────────────────────────────────────────────────────
@@ -2101,6 +2131,14 @@ async function dbGetAll() {
     submittedAt:     r.submitted_at,
     submittedBy:     r.submitted_by
   }));
+}
+
+async function dbDelete(key) {
+  const res = await fetch(`${SUPA_URL}/rest/v1/periods?key=eq.${encodeURIComponent(key)}`, {
+    method: 'DELETE',
+    headers: supaHeaders()
+  });
+  if (!res.ok) { const e = await res.text(); throw new Error('dbDelete failed: ' + e); }
 }
 
 // ─── Submit period data → Supabase ────────────────────────────────────────────
@@ -2216,6 +2254,7 @@ async function submitPeriodData() {
   setTimeout(() => b.remove(), 4000);
 
   checkSubmitState();
+  loadSavedRecords();
   window.scrollTo({top: 0, behavior: 'smooth'});
 }
 
@@ -3529,8 +3568,10 @@ async function auditRenderList() {
         <div class="ci-name">${c['af-name'] || 'Unnamed patient'}</div>
         <div class="ci-meta">${dod} · File: ${c['af-fileno']||'—'}</div>
       </div>
-      ${badge}`;
-    div.onclick = () => auditOpenCase(c['af-fileno']);
+      ${badge}
+      <button class="qbtn" style="font-size:0.65rem;padding:3px 8px;flex-shrink:0;" onclick="event.stopPropagation();auditOpenCase('${(c['af-fileno']||'').replace(/'/g,"\\'")}')">✏️ Edit</button>`;
+    div.style.cursor = 'pointer';
+    div.onclick = () => auditShowPreview(c['af-fileno']);
     body.appendChild(div);
   });
 }
@@ -3715,8 +3756,263 @@ function auditAddSolution() {
   </tr>`;
 }
 
-// ── Print ──────────────────────────────────────────────
-function auditPrintCase() { auditSaveCase().then(() => window.print()); }
+// ── Generate audit form preview popup ─────────────────
+function buildAuditFormHTML(c) {
+  const fld = (label, val) => val ? `<div style="margin-bottom:6px;"><span style="font-weight:700;color:#1a5276;">${label}:</span> ${val}</div>` : '';
+  const sec = (title, content) => `
+    <div style="margin-bottom:18px;">
+      <div style="background:linear-gradient(90deg,#1a3a5c,#1a5c3a);color:white;padding:7px 14px;border-radius:6px;font-weight:700;font-size:0.78rem;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:10px;">${title}</div>
+      <div style="padding:0 4px;">${content}</div>
+    </div>`;
+
+  const yno = v => v==='Y'?'Yes':v==='N'?'No':v==='U'?'Unknown':v||'—';
+
+  // Modifiable factors table
+  let mfRows = (c.modFactors||[]).filter(r=>r.code||r.comment).map(r=>`
+    <tr><td style="padding:5px 10px;border:1px solid #e0eaf2;">${r.code||'—'}</td>
+        <td style="padding:5px 10px;border:1px solid #e0eaf2;">${r.loc||'—'}</td>
+        <td style="padding:5px 10px;border:1px solid #e0eaf2;">${r.comment||'—'}</td></tr>`).join('');
+  const mfTable = mfRows ? `<table style="width:100%;border-collapse:collapse;font-size:0.78rem;">
+    <tr style="background:#f0f5fa;"><th style="padding:6px 10px;border:1px solid #d0dce8;text-align:left;">Code</th><th style="padding:6px 10px;border:1px solid #d0dce8;text-align:left;">Location</th><th style="padding:6px 10px;border:1px solid #d0dce8;text-align:left;">Description</th></tr>
+    ${mfRows}</table>` : '<span style="color:#aaa;">None recorded</span>';
+
+  // Solutions table
+  let solRows = (c.solutions||[]).filter(r=>r.factor||r.solution).map(r=>`
+    <tr><td style="padding:5px 10px;border:1px solid #e0eaf2;">${r.factor||'—'}</td>
+        <td style="padding:5px 10px;border:1px solid #e0eaf2;">${r.solution||'—'}</td>
+        <td style="padding:5px 10px;border:1px solid #e0eaf2;">${r.whom||'—'}</td>
+        <td style="padding:5px 10px;border:1px solid #e0eaf2;">${r.when||'—'}</td></tr>`).join('');
+  const solTable = solRows ? `<table style="width:100%;border-collapse:collapse;font-size:0.78rem;">
+    <tr style="background:#f0f5fa;"><th style="padding:6px 10px;border:1px solid #d0dce8;">Factor</th><th style="padding:6px 10px;border:1px solid #d0dce8;">Solution</th><th style="padding:6px 10px;border:1px solid #d0dce8;">By Whom</th><th style="padding:6px 10px;border:1px solid #d0dce8;">By When</th></tr>
+    ${solRows}</table>` : '<span style="color:#aaa;">None recorded</span>';
+
+  const avoidColour = c['af-avoidable']==='Yes'?'#c0392b':c['af-avoidable']==='No'?'#27ae60':'#e67e22';
+
+  return `
+    <div style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:18px;padding:14px;background:#f4f8fc;border-radius:8px;border:1px solid #d0dce8;">
+      <div><span style="font-size:0.62rem;font-family:'IBM Plex Mono',monospace;color:#7a90a0;text-transform:uppercase;letter-spacing:0.08em;">Patient</span><div style="font-size:1.1rem;font-weight:700;color:#1a3a5c;margin-top:2px;">${c['af-name']||'—'}</div></div>
+      <div><span style="font-size:0.62rem;font-family:'IBM Plex Mono',monospace;color:#7a90a0;text-transform:uppercase;letter-spacing:0.08em;">File No</span><div style="font-size:1rem;font-weight:700;color:#1a3a5c;margin-top:2px;">${c['af-fileno']||'—'}</div></div>
+      <div><span style="font-size:0.62rem;font-family:'IBM Plex Mono',monospace;color:#7a90a0;text-transform:uppercase;letter-spacing:0.08em;">Date of Death</span><div style="font-size:0.9rem;font-weight:700;color:#c0392b;margin-top:2px;">${c['af-deathdate']||'—'}</div></div>
+      <div style="margin-left:auto;"><span style="font-size:0.62rem;font-family:'IBM Plex Mono',monospace;color:#7a90a0;text-transform:uppercase;letter-spacing:0.08em;">Avoidability</span><div style="font-size:0.9rem;font-weight:700;color:${avoidColour};margin-top:2px;">${c['af-avoidable']||'—'}</div></div>
+    </div>
+
+    ${sec('1. Patient Details', `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 24px;">
+        ${fld('District', c['af-district'])}
+        ${fld('Address', c['af-address'])}
+        ${fld('Date of Birth', c['af-dob'])}
+        ${fld('Gender', c['af-gender']==='M'?'Male':c['af-gender']==='F'?'Female':c['af-gender']||'—')}
+        ${fld('Weight (kg)', c['af-weight'])}
+        ${fld('Re-admission', yno(c['af-readmit']))}
+      </div>`)}
+
+    ${sec('2. Admission & Death Details', `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 24px;">
+        ${fld('Date of Admission', c['af-admdate'])}
+        ${fld('Time of Admission', c['af-admtime'])}
+        ${fld('Date of Death', c['af-deathdate'])}
+        ${fld('Time of Death', c['af-deathtime'])}
+        ${fld('When Death Occurred', c['af-when'])}
+        ${fld('Dead on Arrival', yno(c['af-doa']))}
+      </div>`)}
+
+    ${sec('3. Records & CCP', `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 24px;">
+        ${fld('File Present & Used', yno(c['af-file']))}
+        ${fld('CCP Used', yno(c['af-ccp']))}
+        ${fld('Records Incomplete', yno(c['af-incomplete']))}
+        ${fld('Inadequate Quality of Notes', yno(c['af-inadequate']))}
+        ${fld('Records & Notes OK', yno(c['af-recok']))}
+        ${fld('Triage', c['af-triage'])}
+        ${fld('Emergency Treatment', c['af-etname'])}
+        ${fld('Time Given', c['af-ettime'])}
+      </div>`)}
+
+    ${c['af-referred']==='Y' ? sec('4. Referral', `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 24px;">
+        ${fld('Referring Facility', c['af-reffac'])}
+        ${fld('Facility Type', c['af-reftype'])}
+        ${fld('Referral Date', c['af-refdate'])}
+        ${fld('Referral Time', c['af-reftime'])}
+        ${fld('Diagnosis on Referral', c['af-refdiag'])}
+        ${fld('Reason for Referral', c['af-refreason'])}
+        ${fld('Pre-Referral Treatment', c['af-preref'])}
+        ${fld('Mode of Transport', c['af-transport'])}
+      </div>`) : ''}
+
+    ${sec('5. Social History & Nutrition', `
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px 24px;">
+        ${fld("Mother's Status", c['af-mother'])}
+        ${fld("Father's Status", c['af-father'])}
+        ${fld('Primary Caregiver', c['af-caregiver'])}
+        ${fld('Nutritional Status', c['af-nutrition'])}
+        ${fld('If Malnourished', c['af-malspec'])}
+        ${fld('Feeding (first 6 months)', c['af-feeding'])}
+      </div>`)}
+
+    ${sec('6. HIV Status & Management', `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 24px;">
+        ${fld('HIV Status (Child)', c['af-hiv'])}
+        ${fld('HIV Stage', c['af-hivstage'])}
+        ${fld('Perinatal ARV', c['af-arv'])}
+        ${fld('CPT Prophylaxis', c['af-cpt'])}
+        ${fld('ART (Child)', c['af-art'])}
+      </div>`)}
+
+    ${sec('7. Cause of Death', `
+      <table style="width:100%;border-collapse:collapse;font-size:0.78rem;">
+        <tr style="background:#f0f5fa;"><th style="padding:6px 10px;border:1px solid #d0dce8;text-align:left;">Code</th><th style="padding:6px 10px;border:1px solid #d0dce8;text-align:left;">Cause</th></tr>
+        ${[['a','Immediate Cause'],['b','Due to (b)'],['c','Due to (c)'],['d','Due to (d)'],['other1','Other 1'],['other2','Other 2'],['other3','Other 3']].filter(([k])=>c[`af-cod-${k}`]||c[`af-cod-code-${k}`]).map(([k,lbl])=>`
+        <tr><td style="padding:5px 10px;border:1px solid #e0eaf2;font-family:'IBM Plex Mono',monospace;">${c[`af-cod-code-${k}`]||'—'}</td><td style="padding:5px 10px;border:1px solid #e0eaf2;"><strong>${lbl}:</strong> ${c[`af-cod-${k}`]||'—'}</td></tr>`).join('')}
+      </table>`)}
+
+    ${sec('8. Modifiable Factors', mfTable)}
+    ${sec('9. Proposed Solutions', solTable)}
+
+    ${sec('10. Case Summary', `
+      ${c['af-summary-child']?`<div style="margin-bottom:10px;"><div style="font-weight:700;color:#1a5276;margin-bottom:4px;">Child's Details</div><div style="background:#f8fbff;border-left:3px solid #1e6e91;padding:8px 12px;border-radius:0 6px 6px 0;">${c['af-summary-child'].replace(/\n/g,'<br>')}</div></div>`:''}
+      ${c['af-summary-hpc']?`<div style="margin-bottom:10px;"><div style="font-weight:700;color:#1a5276;margin-bottom:4px;">History of Presenting Complaint</div><div style="background:#f8fbff;border-left:3px solid #1e6e91;padding:8px 12px;border-radius:0 6px 6px 0;">${c['af-summary-hpc'].replace(/\n/g,'<br>')}</div></div>`:''}
+      ${c['af-summary-bg']?`<div style="margin-bottom:10px;"><div style="font-weight:700;color:#1a5276;margin-bottom:4px;">Relevant Background History</div><div style="background:#f8fbff;border-left:3px solid #1e6e91;padding:8px 12px;border-radius:0 6px 6px 0;">${c['af-summary-bg'].replace(/\n/g,'<br>')}</div></div>`:''}
+      ${c['af-summary-exam']?`<div style="margin-bottom:10px;"><div style="font-weight:700;color:#1a5276;margin-bottom:4px;">Examination Findings</div><div style="background:#f8fbff;border-left:3px solid #1e6e91;padding:8px 12px;border-radius:0 6px 6px 0;">${c['af-summary-exam'].replace(/\n/g,'<br>')}</div></div>`:''}
+      ${(c['af-ex-weight']||c['af-ex-height']||c['af-ex-muac'])?`<div style="display:flex;gap:20px;flex-wrap:wrap;margin-top:6px;">${fld('Weight',c['af-ex-weight'])}${fld('Height/Length',c['af-ex-height'])}${fld('MUAC',c['af-ex-muac'])}</div>`:''}`)}
+
+    <div style="margin-top:20px;padding:10px 14px;background:#f4f8fc;border-radius:6px;font-size:0.72rem;color:#7a90a0;font-family:'IBM Plex Mono',monospace;">
+      Saved: ${c.savedAt ? new Date(c.savedAt).toLocaleString() : '—'} · By: ${c.savedBy||'—'} · Machinga District Hospital
+    </div>`;
+}
+
+async function auditShowPreview(key) {
+  const cases = await auditDbGetAll();
+  const c = cases.find(x => x['af-fileno'] === key);
+  if (!c) return;
+  document.getElementById('previewTitle').textContent = `Death Review — ${c['af-name']||'Unknown'} · File ${c['af-fileno']||'—'}`;
+  document.getElementById('auditPreviewBody').innerHTML = buildAuditFormHTML(c);
+  document.getElementById('auditPreviewOverlay').style.display = 'block';
+}
+
+function auditGenerateForm() {
+  // Build from current form values
+  const c = {};
+  ['af-district','af-fileno','af-name','af-address','af-dob','af-weight',
+   'af-admdate','af-admtime','af-deathdate','af-deathtime',
+   'af-etname','af-ettime',
+   'af-reffac','af-refdate','af-reftime','af-refdiag','af-refreason','af-preref','af-transport',
+   'af-malspec','af-mother','af-father','af-caregiver','af-feeding',
+   'af-hiv','af-hivstage','af-arv','af-cpt','af-art',
+   'af-cod-code-a','af-cod-a','af-cod-code-b','af-cod-b',
+   'af-cod-code-c','af-cod-c','af-cod-code-d','af-cod-d',
+   'af-other1-code','af-other1','af-other2-code','af-other2','af-other3-code','af-other3',
+   'af-summary-child','af-summary-hpc','af-summary-bg','af-summary-exam',
+   'af-ex-weight','af-ex-height','af-ex-muac','af-reftype'
+  ].forEach(id => { const el=document.getElementById(id); if(el) c[id]=el.value; });
+  ['af-gender','af-readmit','af-when','af-doa','af-file','af-ccp','af-incomplete',
+   'af-inadequate','af-recok','af-triage','af-referred','af-nutrition','af-avoidable'].forEach(name => {
+    const ch = document.querySelector(`[name="${name}"]:checked`);
+    c[name] = ch ? ch.value : '';
+  });
+  c.modFactors = [];
+  document.querySelectorAll('#modFactorsTbody tr').forEach(tr => {
+    const inputs = tr.querySelectorAll('input,select');
+    if (inputs.length >= 3) c.modFactors.push({ code:inputs[0].value, loc:inputs[1].value, comment:inputs[2].value });
+  });
+  c.solutions = [];
+  document.querySelectorAll('#solutionsTbody tr').forEach(tr => {
+    const inputs = tr.querySelectorAll('input,select');
+    if (inputs.length >= 4) c.solutions.push({ factor:inputs[0].value, solution:inputs[1].value, whom:inputs[2].value, when:inputs[3].value });
+  });
+  c.savedAt = new Date().toISOString();
+  c.savedBy = currentUser ? currentUser.name : 'Unknown';
+
+  document.getElementById('previewTitle').textContent = `Death Review — ${c['af-name']||'Unknown'} · File ${c['af-fileno']||'—'}`;
+  document.getElementById('auditPreviewBody').innerHTML = buildAuditFormHTML(c);
+  document.getElementById('auditPreviewOverlay').style.display = 'block';
+}
+
+function auditPrintPreview() {
+  const body = document.getElementById('auditPreviewBody').innerHTML;
+  const title = document.getElementById('previewTitle').textContent;
+  const win = window.open('', '_blank');
+  win.document.write(`<!DOCTYPE html><html><head><title>${title}</title>
+    <style>body{font-family:'Segoe UI',sans-serif;font-size:13px;color:#1a2a3a;padding:20px;line-height:1.6;}
+    @media print{body{padding:0;}}</style></head><body>
+    <h2 style="color:#1a3a5c;margin-bottom:16px;">${title}</h2>
+    <div style="font-size:11px;color:#888;margin-bottom:16px;">Machinga District Hospital · Paediatric Death Audit</div>
+    ${body}</body></html>`);
+  win.document.close();
+  win.focus();
+  win.print();
+}
+
+// ── Saved Records (Data Entry) ─────────────────────────
+async function loadSavedRecords() {
+  const list = document.getElementById('savedRecordsList');
+  list.innerHTML = '<span style="color:#888;">Loading…</span>';
+  try {
+    const all = await dbGetAll();
+    if (!all.length) { list.innerHTML = '<span style="color:#aaa;">No saved records yet.</span>'; return; }
+    all.sort((a,b) => (b.submittedAt||'').localeCompare(a.submittedAt||''));
+    list.innerHTML = `
+      <table style="width:100%;border-collapse:collapse;font-size:0.78rem;">
+        <thead>
+          <tr style="background:#f0f5fa;">
+            <th style="padding:8px 12px;text-align:left;border-bottom:2px solid #d0dce8;color:#1a5276;">Ward</th>
+            <th style="padding:8px 12px;text-align:left;border-bottom:2px solid #d0dce8;color:#1a5276;">Period</th>
+            <th style="padding:8px 12px;text-align:center;border-bottom:2px solid #d0dce8;color:#1a5276;">Admissions</th>
+            <th style="padding:8px 12px;text-align:center;border-bottom:2px solid #d0dce8;color:#1a5276;">Deaths</th>
+            <th style="padding:8px 12px;text-align:left;border-bottom:2px solid #d0dce8;color:#1a5276;">Saved</th>
+            <th style="padding:8px 12px;border-bottom:2px solid #d0dce8;"></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${all.map(r => `
+          <tr style="border-bottom:1px solid #eef3f8;" onmouseover="this.style.background='#f6fbff'" onmouseout="this.style.background=''">
+            <td style="padding:8px 12px;font-weight:600;color:#1a3a5c;">${r.ward}</td>
+            <td style="padding:8px 12px;">${r.month} ${r.year}</td>
+            <td style="padding:8px 12px;text-align:center;font-family:'IBM Plex Mono',monospace;">${r.totalAdm||0}</td>
+            <td style="padding:8px 12px;text-align:center;font-family:'IBM Plex Mono',monospace;color:#c0392b;">${r.deaths||0}</td>
+            <td style="padding:8px 12px;font-size:0.7rem;color:#888;">${r.submittedAt ? new Date(r.submittedAt).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : '—'}</td>
+            <td style="padding:8px 12px;white-space:nowrap;display:flex;gap:6px;">
+              <button class="qbtn" style="font-size:0.68rem;" onclick="editSavedRecord('${r.key.replace(/'/g,"\\'")}')">✏️ Edit</button>
+              <button class="qbtn" style="font-size:0.68rem;color:#e74c3c;border-color:#e74c3c;" onclick="deleteSavedRecord('${r.key.replace(/'/g,"\\'")}','${(r.ward+' '+r.month+' '+r.year).replace(/'/g,"\\'")}')">🗑 Delete</button>
+            </td>
+          </tr>`).join('')}
+        </tbody>
+      </table>`;
+  } catch(e) {
+    list.innerHTML = `<span style="color:#e74c3c;">Failed to load records: ${e.message}</span>`;
+  }
+}
+
+async function editSavedRecord(key) {
+  const all = await dbGetAll();
+  const rec = all.find(r => r.key === key);
+  if (!rec) return;
+  // Set ward/month/year selectors
+  document.getElementById('ward').value  = rec.ward;
+  document.getElementById('month').value = rec.month;
+  document.getElementById('year').value  = rec.year;
+  updateSub(); // this calls loadPeriodData which fills the form
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+async function deleteSavedRecord(key, label) {
+  if (!confirm(`Delete data for "${label}"? This cannot be undone.`)) return;
+  try {
+    await dbDelete(key);
+    // If this was the currently loaded period, clear the form
+    const ward  = document.getElementById('ward').value;
+    const month = document.getElementById('month').value;
+    const year  = document.getElementById('year').value;
+    if (key === `${ward}|${month}|${year}`) {
+      document.querySelectorAll('#entryPage input[type="number"]').forEach(e => e.value='');
+      document.getElementById('deathsAuto').value='';
+      checkSubmitState();
+    }
+    loadSavedRecords();
+  } catch(e) {
+    alert('Delete failed: ' + e.message);
+  }
+}
 
 // ── Export CSV ─────────────────────────────────────────
 async function auditExportCSV() {

@@ -2028,52 +2028,73 @@ function clearAll() {
   updateSubmitLabel();
 }
 
-// ─── IndexedDB Database ────────────────────────────────────────────────────────
-let wardDB = null;
+// ─── Supabase Database ────────────────────────────────────────────────────────
+const SUPA_URL = 'https://dvvkdxsleyiwhytqmdpi.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2dmtkeHNsZXlpd2h5dHFtZHBpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyODEyODEsImV4cCI6MjA4Nzg1NzI4MX0.EHkXzHQsW9Em05ii8OrzPZYcusGVVKdN6dKI_YSBMEU';
 const MONTHS_LIST = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
-function dbOpen() {
-  return new Promise((resolve, reject) => {
-    if (wardDB) { resolve(wardDB); return; }
-    // Version 3: periods + auditCases stores
-    const req = indexedDB.open('WardWorksheetDB', 3);
-    req.onupgradeneeded = e => {
-      const db = e.target.result;
-      if (!db.objectStoreNames.contains('periods')) {
-        const s = db.createObjectStore('periods', { keyPath: 'key' });
-        s.createIndex('year',    'year',    { unique: false });
-        s.createIndex('ward',    'ward',    { unique: false });
-        s.createIndex('quarter', 'quarter', { unique: false });
-      }
-      if (!db.objectStoreNames.contains('auditCases')) {
-        db.createObjectStore('auditCases', { keyPath: 'fileKey' });
-      }
-    };
-    req.onsuccess = e => { wardDB = e.target.result; resolve(wardDB); };
-    req.onerror   = e => reject(e.target.error);
+function supaHeaders() {
+  return {
+    'Content-Type': 'application/json',
+    'apikey': SUPA_KEY,
+    'Authorization': `Bearer ${SUPA_KEY}`,
+    'Prefer': 'return=minimal'
+  };
+}
+
+async function dbPut(record) {
+  const row = {
+    key:               record.key,
+    ward:              record.ward,
+    month:             record.month,
+    year:              record.year,
+    quarter:           record.quarter,
+    total_adm:         record.totalAdm,
+    inpat_days:        record.inpatDays,
+    ref_from:          record.refFrom,
+    ref_to:            record.refTo,
+    deaths:            record.deaths,
+    abscondees:        record.abscondees,
+    disease_data:      record.diseaseData,
+    total_disease_adm: record.totalDiseaseAdm,
+    submitted_at:      record.submittedAt,
+    submitted_by:      record.submittedBy
+  };
+  const res = await fetch(`${SUPA_URL}/rest/v1/periods`, {
+    method: 'POST',
+    headers: { ...supaHeaders(), 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+    body: JSON.stringify(row)
   });
+  if (!res.ok) { const e = await res.text(); throw new Error('dbPut failed: ' + e); }
 }
 
-function dbPut(record) {
-  return dbOpen().then(db => new Promise((resolve, reject) => {
-    const tx = db.transaction('periods', 'readwrite');
-    tx.objectStore('periods').put(record);
-    tx.oncomplete = () => resolve();
-    tx.onerror    = e => reject(e.target.error);
+async function dbGetAll() {
+  const res = await fetch(`${SUPA_URL}/rest/v1/periods?select=*`, {
+    headers: supaHeaders()
+  });
+  if (!res.ok) throw new Error('dbGetAll failed');
+  const rows = await res.json();
+  // Map snake_case columns back to the camelCase shape the rest of the code expects
+  return rows.map(r => ({
+    key:             r.key,
+    ward:            r.ward,
+    month:           r.month,
+    year:            r.year,
+    quarter:         r.quarter,
+    totalAdm:        r.total_adm,
+    inpatDays:       r.inpat_days,
+    refFrom:         r.ref_from,
+    refTo:           r.ref_to,
+    deaths:          r.deaths,
+    abscondees:      r.abscondees,
+    diseaseData:     r.disease_data,
+    totalDiseaseAdm: r.total_disease_adm,
+    submittedAt:     r.submitted_at,
+    submittedBy:     r.submitted_by
   }));
 }
 
-function dbGetAll() {
-  return dbOpen().then(db => new Promise((resolve, reject) => {
-    const req = db.transaction('periods', 'readonly').objectStore('periods').getAll();
-    req.onsuccess = e => resolve(e.target.result);
-    req.onerror   = e => reject(e.target.error);
-  }));
-}
-
-// ─── Submit period data → IndexedDB ───────────────────────────────────────────
-let submittedPeriods = [];
-
+// ─── Submit period data → Supabase ────────────────────────────────────────────
 function updateSubmitLabel() {
   const ward  = document.getElementById('ward').value;
   const month = document.getElementById('month').value;
@@ -3385,27 +3406,38 @@ function showWelcomeBanner(user) {
 let auditCurrent = null; // key of open case (af-fileno)
 
 // ── DB helpers for audit store ────────────────────────
-function auditDbGetAll() {
-  return dbOpen().then(db => new Promise((res, rej) => {
-    const req = db.transaction('auditCases','readonly').objectStore('auditCases').getAll();
-    req.onsuccess = e => res(e.target.result);
-    req.onerror   = e => rej(e.target.error);
-  }));
+async function auditDbGetAll() {
+  const res = await fetch(`${SUPA_URL}/rest/v1/audit_cases?select=*`, {
+    headers: supaHeaders()
+  });
+  if (!res.ok) throw new Error('auditDbGetAll failed');
+  const rows = await res.json();
+  // Each row has file_key, data (jsonb), saved_at, saved_by
+  // Expand the jsonb data blob back into a flat object the form code expects
+  return rows.map(r => ({ ...r.data, fileKey: r.file_key, savedAt: r.saved_at, savedBy: r.saved_by }));
 }
-function auditDbPut(c) {
-  return dbOpen().then(db => new Promise((res, rej) => {
-    c.fileKey = c['af-fileno']; // fileKey is the IDB keyPath (af-fileno contains a hyphen, invalid as keyPath)
-    const tx = db.transaction('auditCases','readwrite');
-    tx.objectStore('auditCases').put(c);
-    tx.oncomplete = res; tx.onerror = e => rej(e.target.error);
-  }));
+
+async function auditDbPut(c) {
+  const row = {
+    file_key: c['af-fileno'],
+    data:     c,
+    saved_at: c.savedAt,
+    saved_by: c.savedBy
+  };
+  const res = await fetch(`${SUPA_URL}/rest/v1/audit_cases`, {
+    method: 'POST',
+    headers: { ...supaHeaders(), 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+    body: JSON.stringify(row)
+  });
+  if (!res.ok) { const e = await res.text(); throw new Error('auditDbPut failed: ' + e); }
 }
-function auditDbDelete(key) {
-  return dbOpen().then(db => new Promise((res, rej) => {
-    const tx = db.transaction('auditCases','readwrite');
-    tx.objectStore('auditCases').delete(key);
-    tx.oncomplete = res; tx.onerror = e => rej(e.target.error);
-  }));
+
+async function auditDbDelete(key) {
+  const res = await fetch(`${SUPA_URL}/rest/v1/audit_cases?file_key=eq.${encodeURIComponent(key)}`, {
+    method: 'DELETE',
+    headers: supaHeaders()
+  });
+  if (!res.ok) { const e = await res.text(); throw new Error('auditDbDelete failed: ' + e); }
 }
 
 

@@ -1,0 +1,3665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ward Worksheet – Machinga District Hospital</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #f0ede8; --surface: #faf9f7; --border: #c8c0b4;
+    --accent: #1a5c3a; --accent2: #c0392b; --text: #1a1a1a;
+    --muted: #6b6560; --header-bg: #1a1a1a; --viz-bg: #0f1623;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); font-family: 'IBM Plex Sans', sans-serif; color: var(--text); min-height: 100vh; }
+
+  /* HEADER */
+  .app-header { background: var(--header-bg); color: white; padding: 14px 28px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; position: sticky; top: 0; z-index: 200; }
+  .title-block h1 { font-family: 'IBM Plex Mono', monospace; font-size: 0.95rem; letter-spacing: 0.08em; text-transform: uppercase; color: #e8e3dd; }
+  .title-block p { font-size: 0.7rem; color: #888; letter-spacing: 0.04em; margin-top: 1px; }
+  .header-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+  /* TABS */
+  .tab-bar { display: flex; gap: 3px; background: #2a2a2a; padding: 5px 6px; border-radius: 6px; }
+  .tab-btn { padding: 7px 16px; border: none; border-radius: 4px; font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; transition: all 0.15s; background: transparent; color: #888; }
+  .tab-btn.active { background: var(--accent); color: white; }
+  .tab-btn:hover:not(.active) { background: #3a3a3a; color: #ccc; }
+
+  /* BUTTONS */
+  .btn { display: inline-flex; align-items: center; gap: 5px; padding: 7px 14px; border: none; border-radius: 4px; font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; cursor: pointer; transition: all 0.15s; letter-spacing: 0.03em; }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-primary:hover { background: #145230; }
+  .btn-outline { background: transparent; color: #bbb; border: 1px solid #444; }
+  .btn-outline:hover { border-color: #999; color: white; }
+
+  /* PAGES */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ── ENTRY PAGE ── */
+  .container { max-width: 1300px; margin: 0 auto; padding: 22px 16px 60px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; margin-bottom: 18px; overflow: hidden; }
+  .card-header { background: var(--header-bg); color: white; padding: 9px 16px; font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
+  .card-header .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); display: inline-block; }
+  .card-body { padding: 18px; }
+  .meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(185px, 1fr)); gap: 12px; }
+  .field-group { display: flex; flex-direction: column; gap: 4px; }
+  .field-group label { font-size: 0.66rem; font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+  .field-group input, .field-group select { border: 1px solid var(--border); background: white; padding: 7px 10px; font-family: 'IBM Plex Sans', sans-serif; font-size: 0.86rem; border-radius: 4px; color: var(--text); transition: border-color 0.15s; }
+  .field-group input:focus, .field-group select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(26,92,58,0.1); }
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+  .stat-card { border: 1px solid var(--border); border-radius: 5px; padding: 12px 14px; background: white; }
+  .stat-card label { font-family: 'IBM Plex Mono', monospace; font-size: 0.64rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 4px; }
+  .stat-card input { border: none; border-bottom: 2px solid var(--border); background: transparent; width: 100%; font-size: 1.3rem; font-weight: 700; font-family: 'IBM Plex Mono', monospace; color: var(--accent); padding: 2px 0; }
+  .stat-card input:focus { outline: none; border-bottom-color: var(--accent); }
+  .stat-card.red input { color: var(--accent2); }
+  .stat-card.blue input { color: #2c5f8a; }
+  .table-wrapper { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+  thead tr { background: var(--header-bg); color: white; }
+  thead th { padding: 9px 7px; font-family: 'IBM Plex Mono', monospace; font-size: 0.63rem; letter-spacing: 0.06em; text-transform: uppercase; text-align: center; border: 1px solid #333; white-space: nowrap; }
+  thead th.left { text-align: left; }
+  thead .sub-header { background: #2a2a2a; }
+  tbody tr { transition: background 0.1s; }
+  tbody tr:nth-child(even) { background: #f8f6f3; }
+  tbody tr:hover { background: #eef5f0; }
+  tbody tr.section-header td { background: #e8e3db; font-weight: 600; font-size: 0.68rem; font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding: 5px 10px; border-top: 2px solid var(--border); }
+  td { padding: 4px 5px; border: 1px solid #e0dbd4; text-align: center; vertical-align: middle; }
+  td.disease-name { text-align: left; padding-left: 10px; font-size: 0.78rem; min-width: 210px; max-width: 270px; }
+  td.code { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; color: var(--muted); min-width: 38px; }
+  td input[type="number"] { width: 52px; border: 1px solid transparent; background: transparent; text-align: center; font-size: 0.82rem; font-family: 'IBM Plex Mono', monospace; padding: 2px; border-radius: 3px; color: var(--text); }
+  td input[type="number"]:focus { outline: none; background: white; border-color: var(--accent); }
+  td.total-cell { font-weight: 700; font-family: 'IBM Plex Mono', monospace; background: rgba(26,92,58,0.06); color: var(--accent); }
+  td.total-cell.deaths { background: rgba(192,57,43,0.06); color: var(--accent2); }
+  td.grand-total { font-weight: 800; font-family: 'IBM Plex Mono', monospace; color: #7a3b1e; background: rgba(122,59,30,0.1); }
+  .col-legend { display: flex; gap: 18px; flex-wrap: wrap; margin-bottom: 10px; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 0.7rem; font-family: 'IBM Plex Mono', monospace; color: var(--muted); }
+  .legend-swatch { width: 13px; height: 13px; border-radius: 2px; }
+  tfoot tr { background: #1a1a1a; }
+  tfoot td { padding: 7px 5px; font-family: 'IBM Plex Mono', monospace; font-weight: 600; font-size: 0.8rem; border-color: #333; color: white; }
+  tfoot td.monthly-label { text-align: left; padding-left: 10px; letter-spacing: 0.06em; font-size: 0.68rem; }
+
+  /* ── Dashboard filter bar ── */
+  .dash-filter-bar {
+    background: white; border-radius: 12px; padding: 14px 20px;
+    display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+    margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+    border: 1px solid #e8f0fe;
+  }
+  .dash-filter-group { display: flex; flex-direction: column; gap: 5px; }
+  .dash-filter-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; color: #94a3b8; }
+  .dash-filter-group select {
+    border: 1.5px solid #e2e8f0; border-radius: 7px; padding: 7px 12px;
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 0.82rem; color: #1e293b;
+    background: #f8fafc; cursor: pointer; min-width: 130px;
+    transition: border-color 0.15s;
+  }
+  .dash-filter-group select:focus { outline: none; border-color: #2979ff; }
+  .dash-filter-tabs { display: flex; background: #f1f5f9; border-radius: 8px; padding: 3px; gap: 2px; }
+  .dft {
+    padding: 6px 14px; border: none; border-radius: 6px; font-size: 0.78rem;
+    font-family: 'IBM Plex Sans', sans-serif; cursor: pointer; background: none;
+    color: #64748b; transition: all 0.15s; font-weight: 500;
+  }
+  .dft.active { background: white; color: #2979ff; box-shadow: 0 1px 6px rgba(0,0,0,0.1); font-weight: 700; }
+  .dash-filter-info { margin-left: auto; display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+  .dfi-period { font-weight: 700; font-size: 0.88rem; color: #1e293b; }
+  .dfi-records { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; color: #94a3b8; }
+  .dash-no-data {
+    background: white; border-radius: 14px; padding: 60px 30px;
+    text-align: center; box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    margin-bottom: 18px;
+  }
+  .dash-no-data h3 { font-size: 1.1rem; color: #334155; margin-bottom: 10px; }
+  .dash-no-data p  { font-size: 0.82rem; color: #94a3b8; }
+
+  /* ── VIZ PAGE ── */
+  #vizPage { background: #f0f4f8; min-height: 100vh; }
+  .viz-container { max-width: 1400px; margin: 0 auto; padding: 26px 20px 60px; }
+  .viz-page-title { font-family: 'IBM Plex Sans', sans-serif; color: #1a2a3a; font-size: 1.3rem; font-weight: 700; letter-spacing: 0.01em; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+  .viz-page-title .sub { font-size: 0.75rem; color: #8a9fae; font-weight: 400; font-family: 'IBM Plex Mono', monospace; }
+
+  /* KPI Cards */
+  .kpi-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 28px; }
+  .kpi { border-radius: 18px; padding: 26px 24px 22px; position: relative; overflow: hidden; cursor: default; box-shadow: 0 6px 24px rgba(0,0,0,0.13); transition: transform 0.18s, box-shadow 0.18s; min-height: 130px; display: flex; flex-direction: column; justify-content: space-between; }
+  .kpi:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.18); }
+  .kpi-label { font-family: 'IBM Plex Sans', sans-serif; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.88); margin-bottom: 8px; position: relative; z-index: 1; }
+  .kpi-value { font-family: 'IBM Plex Sans', sans-serif; font-size: 3rem; font-weight: 800; line-height: 1; color: white; position: relative; z-index: 1; }
+  .kpi-sub { font-size: 0.65rem; color: rgba(255,255,255,0.65); margin-top: 6px; position: relative; z-index: 1; }
+  .kpi::after { content: attr(data-icon); font-size: 7rem; line-height: 1; position: absolute; right: -8px; bottom: -12px; opacity: 0.18; z-index: 0; pointer-events: none; }
+  .kpi.blue   { background: linear-gradient(135deg, #2979ff, #1565c0); }
+  .kpi.red    { background: linear-gradient(135deg, #f44336, #b71c1c); }
+  .kpi.purple { background: linear-gradient(135deg, #7c3aed, #4c1d95); }
+  .kpi.orange { background: linear-gradient(135deg, #f59e0b, #b45309); }
+  .kpi.green  { background: linear-gradient(135deg, #10b981, #065f46); }
+  .kpi.teal   { background: linear-gradient(135deg, #06b6d4, #0e7490); }
+
+  /* Chart cards */
+  .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 18px; }
+  .charts-grid.wide { grid-template-columns: 1fr; }
+  .chart-card { background: white; border: none; border-radius: 14px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.07); transition: box-shadow 0.18s; }
+  .chart-card:hover { box-shadow: 0 6px 24px rgba(0,0,0,0.12); }
+  .chart-card-header { padding: 16px 20px 12px; border-bottom: 1px solid #f0f4f8; display: flex; align-items: center; justify-content: space-between; }
+  .chart-card-header h3 { font-family: 'IBM Plex Sans', sans-serif; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: #334155; }
+  .chart-card-header .badge { font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; font-weight: 700; color: white; background: #2979ff; border-radius: 20px; padding: 2px 10px; }
+  .age-legend { display: flex; gap: 14px; padding: 8px 20px 10px; }
+  .age-legend-item { display: flex; align-items: center; gap: 5px; font-size: 0.68rem; font-family: 'IBM Plex Sans', sans-serif; color: #64748b; }
+  .age-dot { width: 9px; height: 9px; border-radius: 2px; }
+  .chart-body { padding: 14px 18px 18px; }
+  .chart-body canvas { max-height: 300px; }
+  .chart-body.tall canvas { max-height: 420px; }
+
+  /* Breakdown table */
+  .breakdown-table { width: 100%; border-collapse: collapse; }
+  .breakdown-table th { font-family: 'IBM Plex Sans', sans-serif; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: white; background: #334155; padding: 10px 12px; text-align: left; }
+  .breakdown-table td { padding: 9px 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.8rem; color: #334155; }
+  .breakdown-table tr:last-child td { border-bottom: none; }
+  .breakdown-table tr:nth-child(even) td { background: #f8fafc; }
+  .breakdown-table tr:hover td { background: #eff6ff; }
+  .rank-cell { font-family: 'IBM Plex Mono', monospace; color: #94a3b8; font-size: 0.68rem; }
+  .bar-cell { width: 100px; }
+  .mini-bg { background: #e2e8f0; border-radius: 3px; height: 5px; overflow: hidden; margin-bottom: 2px; }
+  .mini-fill { height: 5px; border-radius: 3px; }
+  .pct { font-size: 0.6rem; color: #94a3b8; font-family: 'IBM Plex Mono', monospace; }
+
+  /* Top Disease Rankings */
+  .ranked-list { display: flex; flex-direction: column; gap: 0; }
+  .ranked-item { display: flex; align-items: center; gap: 12px; padding: 12px 18px; border-bottom: 1px solid #f1f5f9; transition: background 0.12s; position: relative; }
+  .ranked-item:last-child { border-bottom: none; }
+  .ranked-item:hover { background: #f8fafc; }
+  .ranked-item.rank-1 { background: rgba(255,215,0,0.06); }
+  .ranked-item.rank-2 { background: rgba(192,192,192,0.05); }
+  .ranked-item.rank-3 { background: rgba(205,127,50,0.05); }
+  .rank-medal { font-size: 1.1rem; width: 24px; text-align: center; flex-shrink: 0; }
+  .rank-num { font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; color: #94a3b8; width: 20px; text-align: center; flex-shrink: 0; font-weight: 700; }
+  .rank-disease { flex: 1; min-width: 0; }
+  .rank-disease-name { font-size: 0.82rem; color: #1e293b; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rank-disease-sub { font-size: 0.65rem; color: #64748b; margin-top: 3px; font-family: 'IBM Plex Mono', monospace; display: flex; gap: 10px; flex-wrap: wrap; }
+  .rank-disease-sub .age-u5 { color: #10b981; }
+  .rank-disease-sub .age-o5 { color: #2979ff; }
+  .rank-disease-sub .cfr { color: #f59e0b; }
+  .rank-bar-wrap { width: 120px; flex-shrink: 0; }
+  .rank-bar-bg { background: #e2e8f0; border-radius: 4px; height: 6px; overflow: hidden; margin-bottom: 3px; }
+  .rank-bar-fill { height: 6px; border-radius: 4px; transition: width 0.6s ease; }
+  .rank-bar-pct { font-size: 0.6rem; color: #94a3b8; font-family: 'IBM Plex Mono', monospace; text-align: right; }
+  .rank-value { font-family: 'IBM Plex Mono', monospace; font-size: 1.05rem; font-weight: 700; width: 46px; text-align: right; flex-shrink: 0; }
+  .rank-value.admissions { color: #2979ff; }
+  .rank-value.deaths { color: #f44336; }
+  .ranked-header { display: flex; align-items: center; gap: 12px; padding: 8px 18px; border-bottom: 1px solid #f1f5f9; background: #f8fafc; }
+  .ranked-header span { font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; letter-spacing: 0.07em; text-transform: uppercase; color: #94a3b8; }
+  .ranked-header .rh-disease { flex: 1; }
+  .ranked-header .rh-bar { width: 120px; }
+  .ranked-header .rh-val { width: 46px; text-align: right; }
+
+  @media (max-width: 760px) {
+    .charts-grid { grid-template-columns: 1fr; }
+    .kpi-strip { grid-template-columns: 1fr 1fr; }
+    .kpi-value { font-size: 2.2rem; }
+  }
+  @media print {
+    .app-header .header-right { display: none; }
+    body { background: white; }
+  }
+
+  /* ══════════════ VISUALIZER PAGE ══════════════ */
+  #explorerPage { background: #eef2f7; min-height: 100vh; display: none; }
+  #explorerPage.active { display: flex; flex-direction: column; }
+
+  /* Top toolbar */
+  .vz-toolbar {
+    background: linear-gradient(135deg,#1a5276,#1e6e91);
+    color: white; padding: 0; display: flex; align-items: center;
+    border-bottom: 3px solid #14415e; flex-wrap: wrap; flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+  }
+  .vz-toolbar-left { display:flex; align-items:center; flex:1; flex-wrap:wrap; }
+  .vz-toolbar-right { display:flex; align-items:center; padding: 0 10px; gap: 2px; border-left: 1px solid rgba(255,255,255,0.15); }
+  .vz-toolbar-btn {
+    padding: 11px 16px; background: none; border: none; color: rgba(255,255,255,0.88);
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 0.8rem; cursor: pointer;
+    border-right: 1px solid rgba(255,255,255,0.12); transition: background 0.15s;
+    display: flex; align-items: center; gap: 6px; white-space: nowrap;
+  }
+  .vz-toolbar-btn:hover { background: rgba(255,255,255,0.14); color: white; }
+  .vz-toolbar-btn.primary-action { background: rgba(255,255,255,0.2); font-weight: 700; color: white; }
+  .vz-toolbar-btn.primary-action:hover { background: rgba(255,255,255,0.3); }
+
+  /* Chart type switcher in toolbar */
+  .chart-type-group { display:flex; gap: 2px; padding: 6px 12px; align-items: center; border-left: 1px solid rgba(255,255,255,0.15); }
+  .chart-type-group label { font-size:0.68rem; color:rgba(255,255,255,0.55); margin-right:4px; font-family:'IBM Plex Mono',monospace; letter-spacing:0.05em; white-space:nowrap; }
+  .ctype-btn {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    width: 38px; height: 38px; border-radius: 6px; cursor: pointer;
+    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+    transition: all 0.15s; color: rgba(255,255,255,0.75); font-size: 1.1rem;
+    position: relative;
+  }
+  .ctype-btn span.ctype-label { font-size: 0.52rem; line-height: 1; margin-top: 1px; color: rgba(255,255,255,0.55); letter-spacing:0.03em; }
+  .ctype-btn:hover { background: rgba(255,255,255,0.2); color: white; border-color: rgba(255,255,255,0.35); }
+  .ctype-btn.selected { background: rgba(255,255,255,0.28); color: white; border-color: rgba(255,255,255,0.55); box-shadow: 0 0 0 2px rgba(255,255,255,0.2); }
+
+  /* Layout */
+  .vz-layout {
+    display: flex; flex: 1; overflow: hidden; min-height: calc(100vh - 115px);
+  }
+
+  /* ── Left sidebar (dimension list) ── */
+  .vz-sidebar {
+    width: 210px; flex-shrink: 0; background: white;
+    border-right: 1px solid #d0dce8; display: flex; flex-direction: column;
+    overflow-y: auto; box-shadow: 2px 0 6px rgba(0,0,0,0.04);
+  }
+  .vz-sidebar-hdr {
+    padding: 10px 14px; background: #1a5276; color: white;
+    font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem;
+    letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  .vz-sidebar-group { margin-bottom: 0; }
+  .vz-sidebar-group-title {
+    padding: 7px 14px 5px; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.09em;
+    text-transform: uppercase; color: #9ab0c0; background: #f5f8fb;
+    border-top: 1px solid #e4edf4; border-bottom: 1px solid #e4edf4;
+  }
+  .vz-dim-btn {
+    display: flex; align-items: center; gap: 9px; padding: 10px 14px;
+    font-size: 0.81rem; color: #2c3e50; cursor: pointer; transition: all 0.12s;
+    border-bottom: 1px solid #eef3f8; user-select: none;
+  }
+  .vz-dim-btn:hover { background: #eaf4fb; color: #1e6e91; }
+  .vz-dim-btn.active-dim {
+    background: linear-gradient(90deg,#d0e8f6,#e8f4fb); color: #1a5276; font-weight: 600;
+    border-left: 3px solid #1e6e91; padding-left: 11px;
+  }
+  .dim-icon { font-size: 1rem; flex-shrink: 0; }
+  .dim-name { flex: 1; }
+  .dim-badge {
+    background: #1e6e91; color: white; border-radius: 10px;
+    font-size: 0.6rem; font-family: 'IBM Plex Mono',monospace;
+    padding: 1px 6px; min-width: 18px; text-align: center;
+  }
+  .dim-badge.zero { background: #c8d8e4; color: #6a8898; }
+
+  /* ── Config panel (middle) ── */
+  .vz-config {
+    width: 290px; flex-shrink: 0; background: #fafbfd;
+    border-right: 1px solid #d0dce8; display: flex; flex-direction: column;
+    overflow-y: auto;
+  }
+  .vz-config-hdr {
+    padding: 12px 16px; background: #f0f5fa; border-bottom: 2px solid #1e6e91;
+    font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; letter-spacing: 0.08em;
+    text-transform: uppercase; color: #1a5276; font-weight: 700;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .vz-config-hdr .panel-icon { font-size: 1rem; }
+  .vz-config-section { padding: 13px 15px; border-bottom: 1px solid #e8eef4; }
+  .vz-config-section h4 {
+    font-size: 0.65rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    color: #7a90a0; margin-bottom: 9px;
+  }
+
+  /* Search box */
+  .vz-search { 
+    display: flex; align-items: center; gap: 6px;
+    border: 1px solid #c8d8e4; border-radius: 5px; background: white;
+    padding: 6px 10px; margin-bottom: 8px;
+  }
+  .vz-search input {
+    border: none; outline: none; font-size: 0.78rem; flex: 1;
+    font-family: 'IBM Plex Sans', sans-serif; color: #2c3e50; background: transparent;
+  }
+  .vz-search .search-icon { color: #9ab0c0; font-size: 0.85rem; }
+
+  /* Quick action buttons */
+  .quick-btns { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 8px; }
+  .qbtn {
+    padding: 4px 10px; font-size: 0.68rem; border-radius: 4px; cursor: pointer;
+    border: 1px solid #c0d4e4; background: white; color: #2c5070;
+    transition: all 0.12s; font-family: 'IBM Plex Sans', sans-serif;
+  }
+  .qbtn:hover { background: #d6eaf8; border-color: #1e6e91; color: #1e6e91; }
+  .qbtn.highlight { background: #d6eaf8; border-color: #1e6e91; color: #1e6e91; font-weight: 600; }
+
+  /* Checkbox list */
+  .check-list { display: flex; flex-direction: column; gap: 1px; max-height: 220px; overflow-y: auto; border: 1px solid #e4eef6; border-radius: 5px; background: white; }
+  .check-group-hdr { padding: 5px 10px; background: #eef4f8; font-size: 0.6rem; font-weight: 700; letter-spacing:0.07em; text-transform:uppercase; color: #6a8898; border-bottom: 1px solid #dce8f0; position:sticky; top:0; z-index:1; }
+  .check-item {
+    display: flex; align-items: center; gap: 8px; padding: 7px 10px;
+    cursor: pointer; transition: background 0.1s; font-size: 0.78rem; color: #2c3e50;
+    border-bottom: 1px solid #f0f5f8;
+  }
+  .check-item:last-child { border-bottom: none; }
+  .check-item:hover { background: #eaf4fb; }
+  .check-item.has-data { background: #f6fbff; }
+  .check-item input[type="checkbox"] { accent-color: #1e6e91; width: 14px; height: 14px; cursor: pointer; flex-shrink: 0; }
+  .check-item label { cursor: pointer; flex: 1; line-height: 1.3; }
+  .check-item .data-count { font-family:'IBM Plex Mono',monospace; font-size:0.62rem; background:#1e6e91; color:white; border-radius:10px; padding:1px 6px; flex-shrink:0; }
+
+  /* Ward pills */
+  .ward-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .ward-card {
+    padding: 8px 10px; border: 2px solid #d0dce8; border-radius: 6px; background: white;
+    cursor: pointer; transition: all 0.12s; text-align: center;
+  }
+  .ward-card:hover { border-color: #1e6e91; background: #eaf4fb; }
+  .ward-card.selected { border-color: #1e6e91; background: linear-gradient(135deg,#d0e8f6,#e8f4fb); color: #1a5276; font-weight: 600; }
+  .ward-card .ward-icon { font-size: 1.4rem; display: block; margin-bottom: 3px; }
+  .ward-card .ward-name { font-size: 0.72rem; line-height: 1.2; }
+
+  /* Period buttons */
+  .month-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 4px; }
+  .period-btn {
+    padding: 7px 4px; border: 1px solid #d0dce8; border-radius: 5px; background: white;
+    font-size: 0.72rem; color: #2c3e50; cursor: pointer; text-align: center;
+    transition: all 0.12s; font-family: 'IBM Plex Sans', sans-serif;
+  }
+  .period-btn:hover { border-color: #1e6e91; background: #eaf4fb; }
+  .period-btn.selected { background: #1e6e91; color: white; border-color: #155a7a; font-weight: 600; }
+  .year-row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .year-btn {
+    padding: 6px 14px; border: 1px solid #d0dce8; border-radius: 5px; background: white;
+    font-size: 0.78rem; color: #2c3e50; cursor: pointer; transition: all 0.12s;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .year-btn:hover { border-color: #1e6e91; background: #eaf4fb; }
+  .year-btn.selected { background: #1e6e91; color: white; border-color: #155a7a; font-weight: 600; }
+
+  /* Toggle switch row */
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid #eef3f8; }
+  .toggle-row:last-child { border-bottom: none; }
+  .toggle-row label { font-size: 0.8rem; color: #2c3e50; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+  .toggle-row .toggle-icon { font-size: 0.95rem; }
+  .toggle-switch { position: relative; width: 38px; height: 20px; flex-shrink: 0; }
+  .toggle-switch input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider {
+    position: absolute; inset: 0; background: #c8d8e4; border-radius: 20px;
+    cursor: pointer; transition: background 0.2s;
+  }
+  .toggle-slider:before {
+    content: ''; position: absolute; width: 14px; height: 14px; border-radius: 50%;
+    background: white; left: 3px; top: 3px; transition: transform 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+  .toggle-switch input:checked + .toggle-slider { background: #1e6e91; }
+  .toggle-switch input:checked + .toggle-slider:before { transform: translateX(18px); }
+
+  /* Update button */
+  .vz-update-btn {
+    margin: 12px 14px 16px; padding: 11px; background: linear-gradient(135deg,#1a5276,#1e6e91);
+    color: white; border: none; border-radius: 7px; font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.84rem; font-weight: 700; cursor: pointer; transition: all 0.15s;
+    letter-spacing: 0.02em; box-shadow: 0 3px 10px rgba(30,110,145,0.3);
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .vz-update-btn:hover { background: linear-gradient(135deg,#14415e,#155a7a); box-shadow: 0 4px 14px rgba(30,110,145,0.4); transform: translateY(-1px); }
+
+  /* ── Canvas area ── */
+  .vz-canvas { flex: 1; display: flex; flex-direction: column; overflow: auto; background: #eef2f7; }
+  .vz-canvas-bar {
+    background: white; border-bottom: 1px solid #d0dce8; padding: 9px 20px;
+    display: flex; align-items: center; gap: 12px; flex-shrink: 0; flex-wrap: wrap;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  }
+  .vz-canvas-title { font-size: 0.84rem; color: #1a3a5a; font-weight: 700; flex: 1; }
+  .vz-canvas-meta { font-size: 0.7rem; color: #8a9fae; font-family: 'IBM Plex Mono',monospace; }
+  .vz-canvas-content { flex: 1; padding: 20px; display: flex; flex-direction: column; gap: 20px; overflow-y: auto; }
+
+  /* Output card */
+  .vz-output-card {
+    background: white; border: 1px solid #d0dde8; border-radius: 8px;
+    overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    transition: box-shadow 0.2s;
+  }
+  .vz-output-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+  .vz-output-header {
+    padding: 12px 18px; background: linear-gradient(90deg,#f0f5fa,#f8fafc);
+    border-bottom: 1px solid #e0eaf2; display: flex; align-items: center; gap: 10px;
+  }
+  .vz-output-header .chart-icon { font-size: 1.1rem; }
+  .vz-output-header h3 { font-size: 0.84rem; color: #1a3a5a; font-weight: 700; flex: 1; }
+  .vz-output-header .vz-meta { font-size: 0.68rem; color: #8a9fae; font-family: 'IBM Plex Mono',monospace; }
+  .vz-output-body { padding: 20px 22px 24px; }
+  .vz-output-body canvas { max-height: 420px; width: 100% !important; }
+
+  /* Pivot table */
+  .pivot-wrapper { overflow-x: auto; }
+  .pivot-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+  .pivot-table th {
+    background: #1a5276; color: white; padding: 9px 13px;
+    font-family: 'IBM Plex Mono',monospace; font-size: 0.63rem;
+    letter-spacing: 0.06em; text-transform: uppercase; border: 1px solid #14415e;
+    text-align: center; white-space: nowrap;
+  }
+  .pivot-table th.row-head { background: #14415e; text-align: left; min-width: 220px; }
+  .pivot-table td { padding: 8px 13px; border: 1px solid #e0eaf2; text-align: center; color: #2c3e50; }
+  .pivot-table td.row-label { text-align: left; font-weight: 600; background: #f4f8fc; color: #1a5276; white-space: nowrap; }
+  .pivot-table td.col-total { background: #e8f2f8; font-weight: 700; color: #1a4060; }
+  .pivot-table td.grand { background: #d6e8f4; font-weight: 800; color: #0e2a40; }
+  .pivot-table tr:nth-child(even) td:not(.row-label) { background: #f8fbfe; }
+  .pivot-table tr:hover td { background: #e4f1f9 !important; }
+  .pivot-table tfoot td { background: #1a5276 !important; color: white !important; font-weight: 700 !important; border-color: #14415e !important; }
+
+  /* Summary stat cards below chart */
+  .vz-stat-row { display: grid; grid-template-columns: repeat(auto-fit,minmax(120px,1fr)); gap: 10px; margin-top: 16px; padding-top: 16px; border-top: 1px solid #e0eaf2; }
+  .vz-stat-mini { background: #f4f8fc; border-radius: 6px; padding: 10px 12px; text-align: center; border: 1px solid #e0eaf2; }
+  .vz-stat-mini .sm-val { font-family:'IBM Plex Mono',monospace; font-size: 1.3rem; font-weight: 700; color: #1a5276; }
+  .vz-stat-mini .sm-label { font-size: 0.62rem; color: #7a90a0; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
+
+  /* Empty state */
+  .vz-empty {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; padding: 60px 20px; text-align: center;
+  }
+  .vz-empty .empty-icon { font-size: 4rem; margin-bottom: 16px; opacity: 0.35; }
+  .vz-empty h3 { font-size: 1.05rem; color: #3a5060; margin-bottom: 8px; font-weight: 700; }
+  .vz-empty p { font-size: 0.82rem; line-height: 1.7; max-width: 360px; color: #7a90a0; }
+  .vz-empty .start-steps { margin-top: 22px; display: flex; flex-direction: column; gap: 8px; text-align: left; background: white; border-radius: 8px; padding: 16px 20px; border: 1px solid #d0dce8; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+  .vz-empty .step { display:flex; align-items:center; gap: 10px; font-size: 0.8rem; color: #4a6070; }
+  .vz-empty .step-num { width: 22px; height: 22px; border-radius: 50%; background: #1e6e91; color: white; display:flex; align-items:center; justify-content:center; font-size: 0.7rem; font-weight: 700; flex-shrink: 0; }
+
+  /* ── PHOTO EXTRACTION MODAL ── */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; z-index: 1000;
+    background: rgba(0,0,0,0.75); backdrop-filter: blur(4px);
+    align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: #1a1a1a; border: 1px solid #333; border-radius: 10px;
+    width: 92%; max-width: 720px; max-height: 90vh; overflow-y: auto;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.6);
+    animation: modalIn 0.2s ease;
+  }
+  @keyframes modalIn { from { transform: translateY(20px); opacity:0; } to { transform:translateY(0); opacity:1; } }
+  .modal-header {
+    padding: 18px 22px 14px; border-bottom: 1px solid #2a2a2a;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .modal-header h2 { font-family: 'IBM Plex Mono', monospace; font-size: 0.85rem; letter-spacing: 0.08em; text-transform: uppercase; color: #e8e3dd; }
+  .modal-close { background: none; border: none; color: #888; font-size: 1.4rem; cursor: pointer; line-height: 1; padding: 2px 6px; border-radius: 4px; }
+  .modal-close:hover { background: #333; color: white; }
+  .modal-body { padding: 22px; }
+
+  /* Drop zone */
+  .drop-zone {
+    border: 2px dashed #333; border-radius: 8px; padding: 36px 20px;
+    text-align: center; cursor: pointer; transition: all 0.2s;
+    background: #111; position: relative;
+  }
+  .drop-zone:hover, .drop-zone.drag-over { border-color: var(--accent); background: rgba(26,92,58,0.08); }
+  .drop-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+  .drop-zone .dz-icon { font-size: 2.8rem; margin-bottom: 10px; }
+  .drop-zone .dz-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; color: #888; letter-spacing: 0.06em; }
+  .drop-zone .dz-sub { font-size: 0.68rem; color: #555; margin-top: 5px; }
+
+  /* Preview */
+  .img-preview { display: none; margin-top: 16px; border-radius: 6px; overflow: hidden; border: 1px solid #333; position: relative; }
+  .img-preview img { width: 100%; max-height: 280px; object-fit: contain; background: #0a0a0a; display: block; }
+  .img-preview .remove-btn { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.7); border: 1px solid #555; color: white; border-radius: 4px; padding: 4px 10px; font-size: 0.7rem; cursor: pointer; font-family: 'IBM Plex Mono', monospace; }
+  .img-preview .remove-btn:hover { background: rgba(192,57,43,0.8); }
+
+  /* Extract button */
+  .extract-btn {
+    display: none; width: 100%; margin-top: 16px; padding: 12px;
+    background: var(--accent); color: white; border: none; border-radius: 6px;
+    font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; letter-spacing: 0.06em;
+    text-transform: uppercase; cursor: pointer; transition: background 0.15s;
+    align-items: center; justify-content: center; gap: 8px;
+  }
+  .extract-btn:hover { background: #145230; }
+  .extract-btn.loading { background: #145230; pointer-events: none; }
+
+  /* Progress */
+  .extract-progress { display: none; margin-top: 16px; }
+  .progress-bar-bg { background: #111; border-radius: 4px; height: 6px; overflow: hidden; margin-bottom: 8px; }
+  .progress-bar-fill { height: 6px; background: var(--accent); border-radius: 4px; transition: width 0.4s ease; width: 0%; }
+  .progress-text { font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; color: #888; letter-spacing: 0.04em; }
+
+  /* Results preview */
+  .extract-results { display: none; margin-top: 18px; }
+  .extract-results h3 { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: #2ecc71; margin-bottom: 12px; }
+  .result-summary { background: #111; border: 1px solid #2a3a2a; border-radius: 6px; padding: 14px 16px; margin-bottom: 14px; font-size: 0.8rem; color: #a8c8a8; line-height: 1.7; font-family: 'IBM Plex Mono', monospace; }
+  .result-rows { max-height: 260px; overflow-y: auto; border: 1px solid #2a2a2a; border-radius: 6px; }
+  .result-row { display: grid; grid-template-columns: 36px 1fr repeat(4, 60px); gap: 6px; padding: 7px 12px; border-bottom: 1px solid #1a1a1a; align-items: center; font-size: 0.75rem; }
+  .result-row:last-child { border-bottom: none; }
+  .result-row.header { background: #222; font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; letter-spacing: 0.06em; text-transform: uppercase; color: #607090; position: sticky; top: 0; }
+  .result-row .code-c { color: #607090; font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; }
+  .result-row .name-c { color: #c8d8e8; }
+  .result-row .num-c { text-align: center; font-family: 'IBM Plex Mono', monospace; color: #e8e3dd; }
+  .result-row .num-c.green { color: #2ecc71; }
+  .result-row .num-c.red { color: #e74c3c; }
+
+  .apply-btn {
+    width: 100%; margin-top: 14px; padding: 12px;
+    background: #27ae60; color: white; border: none; border-radius: 6px;
+    font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; letter-spacing: 0.06em;
+    text-transform: uppercase; cursor: pointer; transition: background 0.15s;
+  }
+  .apply-btn:hover { background: #219a52; }
+
+  .error-msg { display: none; margin-top: 14px; padding: 12px 14px; background: rgba(192,57,43,0.12); border: 1px solid rgba(192,57,43,0.3); border-radius: 6px; color: #e88; font-size: 0.78rem; font-family: 'IBM Plex Mono', monospace; line-height: 1.6; }
+
+  .btn-camera { background: #2c5f8a; color: white; }
+  .btn-camera:hover { background: #1e4a6e; }
+
+  /* ── Submit bar ── */
+  .submit-bar {
+    background: linear-gradient(135deg,#1a3a2a,#1a5c3a);
+    border-radius: 10px; padding: 18px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 14px; margin-top: 8px; margin-bottom: 10px;
+    box-shadow: 0 4px 18px rgba(26,92,58,0.25);
+  }
+  .submit-bar-info { display: flex; flex-direction: column; gap: 4px; }
+  .submit-bar-period { font-family: 'IBM Plex Mono', monospace; font-size: 0.9rem; font-weight: 700; color: #a8e6c0; letter-spacing: 0.05em; }
+  .submit-bar-hint { font-size: 0.74rem; color: rgba(255,255,255,0.6); }
+  .submit-bar-actions { display: flex; gap: 10px; align-items: center; }
+  .btn-submit {
+    background: white; color: #1a5c3a; font-weight: 800; font-size: 0.9rem;
+    padding: 11px 28px; border-radius: 8px; border: none; cursor: pointer;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.15); transition: all 0.15s;
+    letter-spacing: 0.01em;
+  }
+  .btn-submit:hover { background: #e8f5ee; transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0,0,0,0.18); }
+  .btn-submit:active { transform: translateY(0); }
+
+  .no-history { padding: 28px; text-align: center; color: var(--muted); font-size: 0.8rem; font-family: 'IBM Plex Mono', monospace; }
+
+  /* ══════════════ DEATH AUDIT PAGE ══════════════ */
+  #auditPage { background: #f0ede8; min-height: 100vh; }
+  .audit-container { max-width: 1200px; margin: 0 auto; padding: 22px 16px 80px; }
+
+  /* Audit toolbar */
+  .audit-toolbar {
+    background: #1a1a1a; border-radius: 6px; padding: 12px 16px;
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 20px;
+  }
+  .audit-toolbar h2 { font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; color: #e8e3dd; flex: 1; }
+  .audit-count { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; color: #888; background: #2a2a2a; padding: 4px 10px; border-radius: 10px; }
+  .btn-danger { background: #c0392b; color: white; }
+  .btn-danger:hover { background: #a93226; }
+
+  /* Case list */
+  .audit-layout { display: grid; grid-template-columns: 320px 1fr; gap: 18px; align-items: start; }
+  @media(max-width:900px){ .audit-layout { grid-template-columns: 1fr; } }
+
+  .case-list-card { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; position: sticky; top: 76px; }
+  .case-list-header { background: #1a1a1a; color: white; padding: 10px 14px; font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; display: flex; align-items: center; justify-content: space-between; }
+  .case-list-body { max-height: 75vh; overflow-y: auto; }
+  .case-item {
+    padding: 11px 14px; border-bottom: 1px solid var(--border); cursor: pointer;
+    transition: background 0.12s; display: flex; align-items: center; gap: 10px;
+  }
+  .case-item:hover { background: #eef5f0; }
+  .case-item.active-case { background: #d5ead8; border-left: 3px solid var(--accent); }
+  .case-item.active-case .ci-name { color: var(--accent); }
+  .case-avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg,#1a5c3a,#2ecc71); display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700; color: white; flex-shrink: 0; font-family: 'IBM Plex Mono', monospace; }
+  .case-avatar.deceased { background: linear-gradient(135deg,#7a1a1a,#c0392b); }
+  .ci-info { flex: 1; min-width: 0; }
+  .ci-name { font-size: 0.82rem; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ci-meta { font-size: 0.68rem; color: var(--muted); margin-top: 2px; font-family: 'IBM Plex Mono', monospace; }
+  .ci-badge { font-size: 0.6rem; padding: 2px 7px; border-radius: 10px; font-family: 'IBM Plex Mono', monospace; font-weight: 700; flex-shrink: 0; }
+  .ci-badge.avoidable { background: rgba(192,57,43,0.15); color: #c0392b; }
+  .ci-badge.not-avoidable { background: rgba(26,92,58,0.12); color: #1a5c3a; }
+  .ci-badge.draft { background: rgba(180,140,0,0.15); color: #b08800; }
+  .no-cases { padding: 32px 16px; text-align: center; color: var(--muted); font-size: 0.8rem; font-family: 'IBM Plex Mono', monospace; }
+
+  /* Form card */
+  .audit-form-card { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  .afc-header { background: #8b1a1a; color: white; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; }
+  .afc-header h3 { font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; }
+  .afc-header .file-no { font-size: 0.7rem; color: rgba(255,255,255,0.6); font-family: 'IBM Plex Mono', monospace; }
+  .afc-body { padding: 20px; }
+
+  /* Form sections */
+  .audit-section { margin-bottom: 24px; }
+  .audit-section-title {
+    font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: white; background: #2c3e50;
+    padding: 7px 12px; border-radius: 4px; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .audit-section-title .section-icon { font-size: 0.9rem; }
+  .audit-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+  .audit-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .audit-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media(max-width:600px){ .audit-grid-3,.audit-grid-2 { grid-template-columns: 1fr; } }
+
+  .af { display: flex; flex-direction: column; gap: 4px; }
+  .af label { font-size: 0.64rem; font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+  .af input[type="text"], .af input[type="date"], .af input[type="time"], .af input[type="number"], .af select, .af textarea {
+    border: 1px solid var(--border); background: white; padding: 7px 10px;
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 0.85rem; border-radius: 4px;
+    color: var(--text); transition: border-color 0.15s; width: 100%;
+  }
+  .af input:focus, .af select:focus, .af textarea:focus { outline: none; border-color: #8b1a1a; box-shadow: 0 0 0 2px rgba(139,26,26,0.1); }
+  .af textarea { resize: vertical; min-height: 80px; }
+
+  /* Radio/checkbox groups */
+  .radio-group { display: flex; flex-wrap: wrap; gap: 6px; }
+  .radio-opt {
+    display: flex; align-items: center; gap: 5px; padding: 5px 10px;
+    border: 1px solid var(--border); border-radius: 4px; cursor: pointer;
+    font-size: 0.78rem; background: white; transition: all 0.12s;
+  }
+  .radio-opt:hover { border-color: #8b1a1a; background: #fdf5f5; }
+  .radio-opt input { accent-color: #8b1a1a; }
+  .radio-opt.checked { border-color: #8b1a1a; background: #fdf0f0; font-weight: 600; }
+
+  /* Modifiable factors table */
+  .mod-factors-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  .mod-factors-table th { background: #2c3e50; color: white; padding: 8px 10px; font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; letter-spacing: 0.06em; text-transform: uppercase; text-align: left; }
+  .mod-factors-table td { padding: 6px 8px; border-bottom: 1px solid var(--border); }
+  .mod-factors-table input, .mod-factors-table select { border: 1px solid #ddd; border-radius: 3px; padding: 5px 7px; font-size: 0.8rem; width: 100%; font-family: 'IBM Plex Sans', sans-serif; }
+  .mod-factors-table tr:last-child td { border-bottom: none; }
+  .add-row-btn { background: none; border: 1px dashed var(--border); color: var(--muted); border-radius: 4px; padding: 6px 14px; font-size: 0.75rem; cursor: pointer; margin-top: 8px; width: 100%; transition: all 0.12s; }
+  .add-row-btn:hover { border-color: #8b1a1a; color: #8b1a1a; }
+
+  /* Avoidability verdict */
+  .verdict-card { border-radius: 6px; padding: 16px; margin-bottom: 16px; border: 2px solid; }
+  .verdict-card.avoidable { background: #fdf0f0; border-color: #c0392b; }
+  .verdict-card.not-avoidable { background: #f0fdf4; border-color: #1a5c3a; }
+  .verdict-card.unsure { background: #fffbf0; border-color: #b08800; }
+  .verdict-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; margin-bottom: 6px; }
+
+  /* Save/submit bar */
+  .audit-save-bar { display: flex; gap: 10px; padding-top: 16px; border-top: 1px solid var(--border); flex-wrap: wrap; align-items: center; }
+  .btn-audit-save { background: #8b1a1a; color: white; font-size: 0.82rem; padding: 10px 22px; }
+  .btn-audit-save:hover { background: #6d1414; }
+  .btn-audit-new { background: #1a5c3a; color: white; font-size: 0.82rem; padding: 10px 22px; }
+  .btn-audit-new:hover { background: #145230; }
+  .save-status { font-size: 0.72rem; font-family: 'IBM Plex Mono', monospace; color: var(--muted); margin-left: auto; }
+
+  /* ICD code row */
+  .icd-row { display: grid; grid-template-columns: 80px 1fr; gap: 8px; align-items: end; }
+  .icd-row .af:first-child label { white-space: nowrap; }
+
+  /* ══════════════ LOGIN SYSTEM ══════════════ */
+  #loginOverlay {
+    position: fixed; inset: 0; z-index: 9999;
+    background: linear-gradient(135deg, #0d1b2a 0%, #1a3a5c 50%, #0d2818 100%);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'IBM Plex Sans', sans-serif;
+  }
+  #loginOverlay.hidden { display: none; }
+
+  .login-bg-pattern {
+    position: absolute; inset: 0; opacity: 0.04;
+    background-image: repeating-linear-gradient(0deg,transparent,transparent 40px,#fff 40px,#fff 41px),
+                      repeating-linear-gradient(90deg,transparent,transparent 40px,#fff 40px,#fff 41px);
+  }
+
+  .login-card {
+    position: relative; z-index: 1;
+    background: rgba(255,255,255,0.97); border-radius: 16px;
+    width: 92%; max-width: 420px;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1);
+    overflow: hidden; animation: loginSlideIn 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  @keyframes loginSlideIn { from { transform:translateY(40px) scale(0.95); opacity:0; } to { transform:translateY(0) scale(1); opacity:1; } }
+
+  .login-header {
+    background: linear-gradient(135deg,#1a3a5c,#1a5c3a);
+    padding: 32px 32px 28px; text-align: center; color: white;
+  }
+  .login-logo { font-size: 3rem; margin-bottom: 10px; }
+  .login-header h2 {
+    font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem;
+    letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.7);
+    margin-bottom: 4px;
+  }
+  .login-header h1 { font-size: 1.15rem; font-weight: 700; color: white; letter-spacing: 0.01em; }
+
+  .login-body { padding: 28px 32px 32px; }
+
+  .login-panel { display: none; }
+  .login-panel.active { display: block; }
+
+  .login-field { margin-bottom: 16px; }
+  .login-field label {
+    display: block; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; color: #5a7080; margin-bottom: 6px;
+  }
+  .login-field .input-wrap { position: relative; }
+  .login-field .input-icon {
+    position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+    font-size: 1rem; color: #9ab0c0; pointer-events: none;
+  }
+  .login-field input {
+    width: 100%; padding: 10px 12px 10px 38px;
+    border: 1.5px solid #d0dce8; border-radius: 7px;
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 0.88rem; color: #1a2a3a;
+    background: white; transition: border-color 0.15s, box-shadow 0.15s;
+    outline: none;
+  }
+  .login-field input:focus { border-color: #1a5c3a; box-shadow: 0 0 0 3px rgba(26,92,58,0.1); }
+
+  .login-btn {
+    width: 100%; padding: 12px; margin-top: 8px;
+    background: linear-gradient(135deg,#1a3a5c,#1a5c3a);
+    color: white; border: none; border-radius: 8px;
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 0.9rem; font-weight: 700;
+    cursor: pointer; transition: all 0.15s; letter-spacing: 0.02em;
+    box-shadow: 0 4px 14px rgba(26,92,58,0.3);
+  }
+  .login-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(26,92,58,0.4); }
+  .login-btn:active { transform: translateY(0); }
+
+  .login-error {
+    display: none; padding: 10px 14px; background: #fde8e8; border: 1px solid #f5c0c0;
+    border-radius: 6px; color: #922b21; font-size: 0.78rem; margin-bottom: 14px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .login-error.show { display: block; animation: shake 0.35s ease; }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+
+  .login-footer { text-align: center; margin-top: 20px; font-size: 0.72rem; color: #9ab0c0; }
+  .login-footer strong { color: #5a7080; }
+
+  /* User pill in header */
+  .user-pill {
+    display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 8px;
+    background: rgba(255,255,255,0.1); border-radius: 20px; border: 1px solid rgba(255,255,255,0.2);
+    cursor: pointer; transition: background 0.15s; position: relative;
+  }
+  .user-pill:hover { background: rgba(255,255,255,0.18); }
+  .user-avatar {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: linear-gradient(135deg,#1a5c3a,#2ecc71);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.78rem; font-weight: 700; color: white; flex-shrink: 0;
+  }
+  .user-info { display: flex; flex-direction: column; line-height: 1.2; }
+  .user-name { font-size: 0.76rem; color: #e8e3dd; font-weight: 600; }
+  .user-role { font-size: 0.62rem; color: #aaa; font-family: 'IBM Plex Mono', monospace; }
+
+  /* User dropdown */
+  .user-dropdown {
+    display: none; position: absolute; top: calc(100% + 8px); right: 0;
+    background: #1a1a1a; border: 1px solid #333; border-radius: 8px; min-width: 200px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4); z-index: 500; overflow: hidden;
+  }
+  .user-dropdown.open { display: block; animation: dropIn 0.15s ease; }
+  @keyframes dropIn { from{transform:translateY(-8px);opacity:0} to{transform:translateY(0);opacity:1} }
+  .user-dropdown-header { padding: 14px 16px; border-bottom: 1px solid #2a2a2a; }
+  .user-dropdown-header .udh-name { font-size: 0.84rem; color: #e8e3dd; font-weight: 600; }
+  .user-dropdown-header .udh-role { font-size: 0.7rem; color: #888; margin-top: 2px; font-family: 'IBM Plex Mono', monospace; }
+  .user-dropdown-header .udh-ward { font-size: 0.7rem; color: #2ecc71; margin-top: 2px; }
+  .dropdown-item {
+    display: flex; align-items: center; gap: 10px; padding: 10px 16px;
+    color: #ccc; font-size: 0.8rem; cursor: pointer; transition: background 0.12s;
+    border-bottom: 1px solid #222;
+  }
+  .dropdown-item:last-child { border-bottom: none; }
+  .dropdown-item:hover { background: #2a2a2a; color: white; }
+  .dropdown-item.danger { color: #e74c3c; }
+  .dropdown-item.danger:hover { background: rgba(231,76,60,0.15); }
+
+  /* Admin panel */
+  #adminPanel {
+    display: none; position: fixed; inset: 0; z-index: 8000;
+    background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+    align-items: center; justify-content: center;
+  }
+  #adminPanel.open { display: flex; }
+  .admin-modal {
+    background: #1a1a1a; border: 1px solid #333; border-radius: 12px;
+    width: 92%; max-width: 640px; max-height: 88vh; overflow-y: auto;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.6);
+    animation: modalIn 0.2s ease;
+  }
+  .admin-header {
+    padding: 18px 22px; border-bottom: 1px solid #2a2a2a;
+    display: flex; align-items: center; justify-content: space-between;
+    background: linear-gradient(135deg,#1a1a1a,#2a2a2a);
+  }
+  .admin-header h2 { font-family: 'IBM Plex Mono', monospace; font-size: 0.85rem; letter-spacing: 0.08em; text-transform: uppercase; color: #e8e3dd; }
+  .admin-body { padding: 20px 22px; }
+  .admin-section { margin-bottom: 24px; }
+  .admin-section h3 { font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: #888; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid #2a2a2a; }
+  .user-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+  .user-table th { background: #222; color: #888; padding: 8px 12px; text-align: left; font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; letter-spacing: 0.06em; text-transform: uppercase; border-bottom: 1px solid #333; }
+  .user-table td { padding: 9px 12px; border-bottom: 1px solid #1a1a1a; color: #ccc; }
+  .user-table tr:hover td { background: #222; }
+  .role-badge { padding: 2px 8px; border-radius: 10px; font-size: 0.65rem; font-family: 'IBM Plex Mono', monospace; font-weight: 600; }
+  .role-badge.admin { background: rgba(192,57,43,0.2); color: #e74c3c; }
+  .role-badge.officer { background: rgba(26,92,58,0.2); color: #2ecc71; }
+  .role-badge.viewer { background: rgba(44,95,138,0.2); color: #5dade2; }
+  .add-user-form { background: #111; border: 1px solid #2a2a2a; border-radius: 8px; padding: 16px; }
+  .add-user-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .add-user-grid input, .add-user-grid select {
+    padding: 8px 10px; border: 1px solid #333; border-radius: 5px;
+    background: #1a1a1a; color: #e8e3dd; font-family: 'IBM Plex Sans', sans-serif; font-size: 0.82rem;
+    outline: none;
+  }
+  .add-user-grid input:focus, .add-user-grid select:focus { border-color: #1a5c3a; }
+  .del-btn { background: none; border: none; color: #e74c3c; cursor: pointer; font-size: 0.8rem; padding: 2px 6px; border-radius: 4px; }
+  .del-btn:hover { background: rgba(231,76,60,0.15); }
+</style>
+</head>
+<body>
+
+<!-- ════════════ LOGIN OVERLAY ════════════ -->
+<div id="loginOverlay">
+  <div class="login-bg-pattern"></div>
+  <div class="login-card">
+    <div class="login-header">
+      <div class="login-logo">🏥</div>
+      <h2>Machinga District Hospital</h2>
+      <h1>Ward Worksheet System</h1>
+    </div>
+    <div class="login-body">
+
+      <!-- SIGN IN -->
+      <div id="panel-signin" class="login-panel active">
+        <div class="login-error" id="signinError"></div>
+        <div class="login-field">
+          <label>Username</label>
+          <div class="input-wrap">
+            <span class="input-icon">👤</span>
+            <input type="text" id="signinUser" placeholder="Enter username" autocomplete="username">
+          </div>
+        </div>
+        <div class="login-field">
+          <label>Password</label>
+          <div class="input-wrap">
+            <span class="input-icon">🔒</span>
+            <input type="password" id="signinPass" placeholder="Enter password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doSignIn()">
+          </div>
+        </div>
+        <button class="login-btn" onclick="doSignIn()">Sign In →</button>
+        <div class="login-footer" style="margin-top:16px;">
+          Default admin: <strong>admin</strong> / <strong>admin123</strong>
+        </div>
+      </div>
+
+      <div class="login-footer">Ward Worksheet v3.0 · Machinga District Hospital</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ ADMIN PANEL ════════════ -->
+<div id="adminPanel">
+  <div class="admin-modal">
+    <div class="admin-header">
+      <h2>🛡 Admin — User Management</h2>
+      <button class="modal-close" onclick="closeAdmin()">✕</button>
+    </div>
+    <div class="admin-body">
+      <div class="admin-section">
+        <h3>Registered Users</h3>
+        <table class="user-table">
+          <thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Ward</th><th></th></tr></thead>
+          <tbody id="adminUserTable"></tbody>
+        </table>
+      </div>
+      <div class="admin-section">
+        <h3>Add New User</h3>
+        <div class="add-user-form">
+          <div class="add-user-grid">
+            <input type="text"     id="addName"  placeholder="Full Name">
+            <input type="text"     id="addUser"  placeholder="Username">
+            <input type="password" id="addPass"  placeholder="Password">
+            <select id="addWard">
+              <option value="All Wards">All Wards</option>
+              <option>Female Ward</option><option>Male Ward</option>
+              <option>Paediatric Ward</option><option>Maternity Ward</option><option>Surgical Ward</option>
+            </select>
+            <select id="addRole">
+              <option>Data Officer</option>
+              <option>Viewer</option>
+              <option>Admin</option>
+            </select>
+          </div>
+          <button class="login-btn" style="margin-top:4px;" onclick="adminAddUser()">+ Add User</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="app-header">
+  <div class="title-block">
+    <h1>Ward Worksheet</h1>
+    <p id="headerSub">Machinga District Hospital — Monthly Disease Report</p>
+  </div>
+  <div class="header-right">
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab('entry')">📋 Data Entry</button>
+      <button class="tab-btn" onclick="switchTab('viz')">📊 Dashboard</button>
+      <button class="tab-btn" onclick="switchTab('explorer')">🔬 Visualizer</button>
+      <button class="tab-btn" onclick="switchTab('audit')">🔍 Death Audit</button>
+    </div>
+    <button class="btn btn-camera" onclick="openPhotoModal()">📷 Extract from Photo</button>
+    <button class="btn btn-outline" id="clearBtn" onclick="clearAll()">Clear All</button>
+    <button class="btn btn-primary" onclick="window.print()">🖨 Print</button>
+    <!-- User pill (shown after login) -->
+    <div class="user-pill" id="userPill" style="display:none;" onclick="toggleUserDropdown()">
+      <div class="user-avatar" id="userAvatar">?</div>
+      <div class="user-info">
+        <span class="user-name" id="userName">—</span>
+        <span class="user-role" id="userRoleBadge">—</span>
+      </div>
+      <div class="user-dropdown" id="userDropdown">
+        <div class="user-dropdown-header">
+          <div class="udh-name" id="ddName">—</div>
+          <div class="udh-role" id="ddRole">—</div>
+          <div class="udh-ward" id="ddWard">—</div>
+        </div>
+        <div class="dropdown-item" id="ddAdminItem" style="display:none;" onclick="openAdmin()">🛡 User Management</div>
+        <div class="dropdown-item danger" onclick="doSignOut()">🚪 Sign Out</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ DATA ENTRY ════════════ -->
+<div id="entryPage" class="page active">
+  <div class="container">
+    <div class="card">
+      <div class="card-header"><span class="dot"></span> Ward Information</div>
+      <div class="card-body">
+        <div class="meta-grid">
+          <div class="field-group"><label>Ward</label>
+            <select id="ward" onchange="updateSub()">
+              <option>Female Ward</option><option>Male Ward</option>
+              <option>Paediatric Ward</option><option>Maternity Ward</option><option>Surgical Ward</option>
+            </select>
+          </div>
+          <div class="field-group"><label>Month</label>
+            <select id="month" onchange="updateSub()">
+              <option>January</option><option>February</option><option>March</option><option>April</option>
+              <option>May</option><option>June</option><option>July</option><option>August</option>
+              <option>September</option><option>October</option><option>November</option><option selected>December</option>
+            </select>
+          </div>
+          <div class="field-group"><label>Year</label><select id="year" onchange="updateSub()"></select></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="dot"></span> Monthly Summary</div>
+      <div class="card-body">
+        <div class="stats-grid">
+          <div class="stat-card"><label>Total Admissions</label><input type="number" id="totalAdmissions" min="0" placeholder="0" oninput="schedViz()"></div>
+          <div class="stat-card"><label>Total In-patient Days</label><input type="number" id="inpatientDays" min="0" placeholder="0"></div>
+          <div class="stat-card blue"><label>Referrals from H/Centres</label><input type="number" id="referralsFrom" min="0" placeholder="0" oninput="schedViz()"></div>
+          <div class="stat-card blue"><label>Referrals to C/Hospitals</label><input type="number" id="referralsTo" min="0" placeholder="0" oninput="schedViz()"></div>
+          <div class="stat-card red"><label>Total Deaths (auto)</label><input type="number" id="deathsAuto" min="0" placeholder="0" readonly style="pointer-events:none;opacity:0.7;"></div>
+          <div class="stat-card red"><label>Total Abscondees</label><input type="number" id="abscondees" min="0" placeholder="0" oninput="schedViz()"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="dot"></span> Disease Data Entry</div>
+      <div class="card-body" style="padding:12px;">
+        <div class="col-legend">
+          <div class="legend-item"><div class="legend-swatch" style="background:rgba(26,92,58,0.2)"></div>&lt;5 = Under 5 years</div>
+          <div class="legend-item"><div class="legend-swatch" style="background:rgba(44,95,138,0.2)"></div>≥5 = 5 years &amp; above</div>
+          <div class="legend-item"><div class="legend-swatch" style="background:rgba(192,57,43,0.2)"></div>D = Deaths</div>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th class="left" rowspan="2" style="width:40px">No.</th>
+                <th class="left" rowspan="2" style="min-width:210px">Name of Disease / Condition</th>
+                <th colspan="3" style="background:rgba(26,92,58,0.55)">Ward Admissions</th>
+                <th colspan="3" style="background:rgba(192,57,43,0.55)">Ward Deaths</th>
+                <th rowspan="2" style="min-width:56px">TOT</th>
+              </tr>
+              <tr class="sub-header">
+                <th style="color:#a8d5b8">&lt;5</th><th style="color:#a8c8e8">≥5</th><th style="color:#f0c090">TOT</th>
+                <th style="color:#f0a090">&lt;5</th><th style="color:#f0a090">≥5</th><th style="color:#f5c0b0">TOT</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+            <tfoot>
+              <tr>
+                <td colspan="2" class="monthly-label">MONTHLY TOTALS</td>
+                <td id="f-du5">0</td><td id="f-do5">0</td><td id="f-dtot">0</td>
+                <td id="f-dtu5">0</td><td id="f-dto5">0</td><td id="f-dttot">0</td>
+                <td id="f-grand" style="background:rgba(122,59,30,0.25);color:#f0c090;font-weight:800;">0</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Submit Bar -->
+    <div class="submit-bar">
+      <div class="submit-bar-info">
+        <span class="submit-bar-period" id="submitPeriodLabel">—</span>
+        <span class="submit-bar-hint">Review your entries above, then submit to save this period's data.</span>
+      </div>
+      <div class="submit-bar-actions">
+        <button class="btn btn-outline" onclick="clearAll()">🗑 Clear Form</button>
+        <button class="btn btn-submit" onclick="submitPeriodData()">✅ Submit &amp; Save Period</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ════════════ DASHBOARD ════════════ -->
+<div id="vizPage" class="page">
+  <div class="viz-container">
+    <div class="viz-page-title">
+      <span style="background:linear-gradient(135deg,#2979ff,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">📊 Analytics Dashboard</span>
+      <span class="sub" id="vizSub">— No data yet</span>
+    </div>
+
+    <!-- Dashboard Filter Bar -->
+    <div class="dash-filter-bar" id="dashFilterBar">
+      <div class="dash-filter-group">
+        <label class="dash-filter-label">📅 Filter by</label>
+        <div class="dash-filter-tabs" id="dashFilterMode">
+          <button class="dft active" data-mode="month"   onclick="dashSetMode('month')">Month</button>
+          <button class="dft"        data-mode="quarter" onclick="dashSetMode('quarter')">Quarter</button>
+          <button class="dft"        data-mode="year"    onclick="dashSetMode('year')">Year</button>
+          <button class="dft"        data-mode="all"     onclick="dashSetMode('all')">All Time</button>
+        </div>
+      </div>
+
+      <!-- Month picker -->
+      <div class="dash-filter-group" id="dfgMonth">
+        <label class="dash-filter-label">Month</label>
+        <select id="dfMonth" onchange="buildDashboard()">
+          <option>January</option><option>February</option><option>March</option>
+          <option>April</option><option>May</option><option>June</option>
+          <option>July</option><option>August</option><option>September</option>
+          <option>October</option><option>November</option><option>December</option>
+        </select>
+      </div>
+
+      <!-- Quarter picker -->
+      <div class="dash-filter-group" id="dfgQuarter" style="display:none">
+        <label class="dash-filter-label">Quarter</label>
+        <select id="dfQuarter" onchange="buildDashboard()">
+          <option value="Q1">Q1 (Jan–Mar)</option>
+          <option value="Q2">Q2 (Apr–Jun)</option>
+          <option value="Q3">Q3 (Jul–Sep)</option>
+          <option value="Q4">Q4 (Oct–Dec)</option>
+        </select>
+      </div>
+
+      <!-- Year picker -->
+      <div class="dash-filter-group" id="dfgYear">
+        <label class="dash-filter-label">Year</label>
+        <select id="dfYear" onchange="buildDashboard()"></select>
+      </div>
+
+      <!-- Ward filter -->
+      <div class="dash-filter-group">
+        <label class="dash-filter-label">Ward</label>
+        <select id="dfWard" onchange="buildDashboard()">
+          <option value="all">All Wards</option>
+          <option>Female Ward</option><option>Male Ward</option>
+          <option>Paediatric Ward</option><option>Maternity Ward</option><option>Surgical Ward</option>
+        </select>
+      </div>
+
+      <div class="dash-filter-info" id="dashFilterInfo">
+        <span class="dfi-period" id="dfiPeriod">—</span>
+        <span class="dfi-records" id="dfiRecords">0 records</span>
+      </div>
+    </div>
+
+    <!-- KPI Strip -->
+    <div class="kpi-strip">
+      <div class="kpi blue"   data-icon="👥"><div class="kpi-label">Total Admissions</div><div class="kpi-value" id="kAdm">—</div><div class="kpi-sub">from summary field</div></div>
+      <div class="kpi red"    data-icon="📈"><div class="kpi-label">Total Deaths</div><div class="kpi-value" id="kDeaths">—</div><div class="kpi-sub">all ages</div></div>
+      <div class="kpi purple" data-icon="🏥"><div class="kpi-label">Disease Admissions</div><div class="kpi-value" id="kDisch">—</div><div class="kpi-sub">sum from disease table</div></div>
+      <div class="kpi orange" data-icon="🚶"><div class="kpi-label">Abscondees</div><div class="kpi-value" id="kAbs">—</div><div class="kpi-sub">left without discharge</div></div>
+      <div class="kpi teal"   data-icon="🚑"><div class="kpi-label">Referrals In</div><div class="kpi-value" id="kRefIn">—</div><div class="kpi-sub">from health centres</div></div>
+      <div class="kpi green"  data-icon="➕"><div class="kpi-label">Referrals Out</div><div class="kpi-value" id="kRefOut">—</div><div class="kpi-sub">to central hospitals</div></div>
+    </div>
+
+    <!-- Row 1: Monthly overview bar -->
+    <div class="charts-grid wide">
+      <div class="chart-card">
+        <div class="chart-card-header"><h3>Monthly Overview — Admissions · Referrals · Deaths · Abscondees</h3></div>
+        <div class="chart-body"><canvas id="cOverview"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Row 2: Top 10 charts -->
+    <div class="charts-grid">
+      <div class="chart-card">
+        <div class="chart-card-header"><h3>Top 10 by Admissions</h3><span class="badge" id="bTop10D">—</span></div>
+        <div class="chart-body tall"><canvas id="cTop10D"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card-header"><h3>Top 10 by Deaths</h3><span class="badge" id="bTop10DT">—</span></div>
+        <div class="chart-body tall"><canvas id="cTop10DT"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Row 3: Age breakdown donuts -->
+    <div class="charts-grid">
+      <div class="chart-card">
+        <div class="chart-card-header"><h3>Age Breakdown — Admissions</h3><span class="badge" id="bAgeDisch">0</span></div>
+        <div class="chart-body"><canvas id="cAgeDisch"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card-header"><h3>Age Breakdown — Deaths</h3><span class="badge" id="bAgeDeaths">0</span></div>
+        <div class="chart-body"><canvas id="cAgeDeaths"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Row 4: Top Admissions & Top Mortality ranked lists -->
+    <div class="charts-grid">
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <h3>🏆 Top Admissions by Disease</h3>
+          <span class="badge" id="bTopAdm">—</span>
+        </div>
+        <div class="ranked-header">
+          <span style="width:24px"></span>
+          <span style="width:20px">#</span>
+          <span class="rh-disease">Disease</span>
+          <span class="rh-bar">Share of Admissions</span>
+          <span class="rh-val">Total</span>
+        </div>
+        <div class="ranked-list" id="topAdmList"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <h3>💀 Top Mortality by Disease</h3>
+          <span class="badge" id="bTopMort">—</span>
+        </div>
+        <div class="ranked-header">
+          <span style="width:24px"></span>
+          <span style="width:20px">#</span>
+          <span class="rh-disease">Disease</span>
+          <span class="rh-bar">Share of Deaths</span>
+          <span class="rh-val">Deaths</span>
+        </div>
+        <div class="ranked-list" id="topMortList"></div>
+      </div>
+    </div>
+
+    <!-- Row 5: Full breakdown table -->
+    <div class="charts-grid wide">
+      <div class="chart-card">
+        <div class="chart-card-header"><h3>Full Disease Breakdown — Under 5 vs 5 and Above</h3></div>
+        <div class="chart-body" style="padding:0;overflow-x:auto;">
+          <table class="breakdown-table">
+            <thead>
+              <tr>
+                <th>#</th><th>Disease</th>
+                <th style="color:#10b981">&lt;5 Adm.</th><th style="color:#2979ff">≥5 Adm.</th><th>Tot Adm.</th>
+                <th style="color:#f44336">&lt;5 Deaths</th><th style="color:#f59e0b">≥5 Deaths</th><th>Tot Deaths</th>
+                <th class="bar-cell">Share</th>
+              </tr>
+            </thead>
+            <tbody id="brkBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ════════════ VISUALIZER PAGE ════════════ -->
+<div id="explorerPage" class="page">
+
+  <!-- Top Toolbar -->
+  <div class="vz-toolbar">
+    <div class="vz-toolbar-left">
+      <button class="vz-toolbar-btn primary-action" onclick="vzUpdate()">▶ Update</button>
+      <button class="vz-toolbar-btn" onclick="vzDownloadCSV()">⬇ CSV</button>
+      <button class="vz-toolbar-btn" onclick="vzDownloadPNG()">🖼 PNG</button>
+    </div>
+    <div class="chart-type-group">
+      <label>Chart type:</label>
+      <button class="ctype-btn selected" data-type="column"   title="Column Chart">  📊<span class="ctype-label">Column</span></button>
+      <button class="ctype-btn"          data-type="bar"      title="Horizontal Bar"> ↔<span class="ctype-label">Bar</span></button>
+      <button class="ctype-btn"          data-type="line"     title="Line Chart">    📈<span class="ctype-label">Line</span></button>
+      <button class="ctype-btn"          data-type="area"     title="Area Chart">    ⛰<span class="ctype-label">Area</span></button>
+      <button class="ctype-btn"          data-type="pie"      title="Pie Chart">     🥧<span class="ctype-label">Pie</span></button>
+      <button class="ctype-btn"          data-type="doughnut" title="Doughnut">      🍩<span class="ctype-label">Donut</span></button>
+      <button class="ctype-btn"          data-type="radar"    title="Radar Chart">   🕸<span class="ctype-label">Radar</span></button>
+      <button class="ctype-btn"          data-type="stacked"  title="Stacked Bar">   ▦<span class="ctype-label">Stacked</span></button>
+      <button class="ctype-btn"          data-type="pivot"    title="Pivot Table">   ⊞<span class="ctype-label">Pivot</span></button>
+    </div>
+  </div>
+
+  <div class="vz-layout">
+
+    <!-- ── Left sidebar ── -->
+    <div class="vz-sidebar">
+      <div class="vz-sidebar-hdr">Dimensions</div>
+
+      <div class="vz-sidebar-group">
+        <div class="vz-sidebar-group-title">Main</div>
+        <div class="vz-dim-btn active-dim" onclick="vzShowPanel('data')" id="sdim-data">
+          <span class="dim-icon">🦠</span><span class="dim-name">Data Elements</span>
+          <span class="dim-badge zero" id="sbadge-data">0</span>
+        </div>
+        <div class="vz-dim-btn" onclick="vzShowPanel('period')" id="sdim-period">
+          <span class="dim-icon">📅</span><span class="dim-name">Period</span>
+          <span class="dim-badge zero" id="sbadge-period">0</span>
+        </div>
+        <div class="vz-dim-btn" onclick="vzShowPanel('ward')" id="sdim-ward">
+          <span class="dim-icon">🏥</span><span class="dim-name">Ward</span>
+          <span class="dim-badge zero" id="sbadge-ward">0</span>
+        </div>
+      </div>
+
+      <div class="vz-sidebar-group">
+        <div class="vz-sidebar-group-title">Disaggregation</div>
+        <div class="vz-dim-btn" onclick="vzShowPanel('age')" id="sdim-age">
+          <span class="dim-icon">👶</span><span class="dim-name">Age Group</span>
+          <span class="dim-badge" id="sbadge-age">2</span>
+        </div>
+        <div class="vz-dim-btn" onclick="vzShowPanel('measure')" id="sdim-measure">
+          <span class="dim-icon">📐</span><span class="dim-name">Measure</span>
+          <span class="dim-badge" id="sbadge-measure">2</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Config panel ── -->
+    <div class="vz-config">
+      <div class="vz-config-hdr" id="vzConfigHdr">
+        <span class="panel-icon">🦠</span> Data Elements
+      </div>
+
+      <!-- PANEL: Data Elements -->
+      <div id="panel-data" class="vz-panel">
+        <div class="vz-config-section">
+          <div class="vz-search">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="vzSearchInput" placeholder="Search diseases…" oninput="vzFilterDiseases(this.value)">
+          </div>
+          <div class="quick-btns">
+            <button class="qbtn" onclick="vzSelectAll()">Select All</button>
+            <button class="qbtn" onclick="vzSelectNone()">Clear</button>
+            <button class="qbtn highlight" onclick="vzSelectWithData()">✦ With Data</button>
+          </div>
+          <div class="check-list" id="vzDiseaseChecks" style="max-height:280px;"></div>
+        </div>
+      </div>
+
+      <!-- PANEL: Period -->
+      <div id="panel-period" class="vz-panel" style="display:none;">
+        <div class="vz-config-section">
+          <h4>Month(s)</h4>
+          <div class="month-grid" id="vzMonthPicker"></div>
+        </div>
+        <div class="vz-config-section">
+          <h4>Year</h4>
+          <div class="year-row" id="vzYearPicker"></div>
+        </div>
+      </div>
+
+      <!-- PANEL: Ward -->
+      <div id="panel-ward" class="vz-panel" style="display:none;">
+        <div class="vz-config-section">
+          <h4>Select Ward</h4>
+          <div class="ward-grid" id="vzWardGrid"></div>
+        </div>
+      </div>
+
+      <!-- PANEL: Age -->
+      <div id="panel-age" class="vz-panel" style="display:none;">
+        <div class="vz-config-section">
+          <h4>Age Groups</h4>
+          <div class="toggle-row">
+            <label><span class="toggle-icon">👶</span> Under 5 years (&lt;5)</label>
+            <label class="toggle-switch"><input type="checkbox" id="age-u5" checked><span class="toggle-slider"></span></label>
+          </div>
+          <div class="toggle-row">
+            <label><span class="toggle-icon">👨</span> 5 years and above (≥5)</label>
+            <label class="toggle-switch"><input type="checkbox" id="age-o5" checked><span class="toggle-slider"></span></label>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANEL: Measure -->
+      <div id="panel-measure" class="vz-panel" style="display:none;">
+        <div class="vz-config-section">
+          <h4>Measure Type</h4>
+          <div class="toggle-row">
+            <label><span class="toggle-icon">🏥</span> Discharges</label>
+            <label class="toggle-switch"><input type="checkbox" id="meas-disch" checked><span class="toggle-slider"></span></label>
+          </div>
+          <div class="toggle-row">
+            <label><span class="toggle-icon">💀</span> Deaths</label>
+            <label class="toggle-switch"><input type="checkbox" id="meas-deaths" checked><span class="toggle-slider"></span></label>
+          </div>
+        </div>
+      </div>
+
+      <button class="vz-update-btn" onclick="vzUpdate()">▶ Update Chart</button>
+    </div>
+
+    <!-- ── Canvas ── -->
+    <div class="vz-canvas">
+      <div class="vz-canvas-bar">
+        <span class="vz-canvas-title" id="vzCanvasTitle">Configure your visualisation</span>
+        <span class="vz-canvas-meta" id="vzCanvasMeta"></span>
+      </div>
+      <div class="vz-canvas-content" id="vzCanvasContent">
+        <div class="vz-empty">
+          <div class="empty-icon">📊</div>
+          <h3>Build Your Visualisation</h3>
+          <p>Select dimensions from the left panel and click <strong>Update Chart</strong>.</p>
+          <div class="start-steps">
+            <div class="step"><span class="step-num">1</span> Click <strong>Data Elements</strong> → pick diseases</div>
+            <div class="step"><span class="step-num">2</span> Click <strong>Period</strong> → choose month &amp; year</div>
+            <div class="step"><span class="step-num">3</span> Click <strong>Ward</strong> → select ward(s)</div>
+            <div class="step"><span class="step-num">4</span> Choose a chart type in the toolbar</div>
+            <div class="step"><span class="step-num">5</span> Click <strong>▶ Update</strong></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ════════════ DEATH AUDIT PAGE ════════════ -->
+<div id="auditPage" class="page">
+<div class="audit-container">
+
+  <!-- Toolbar -->
+  <div class="audit-toolbar">
+    <div>
+      <h2>🔍 Paediatric Death Audit</h2>
+      <div style="font-size:0.68rem;color:#666;font-family:'IBM Plex Mono',monospace;margin-top:2px;">Confidential · Child PIP Death Review</div>
+    </div>
+    <span class="audit-count" id="auditCount">0 cases</span>
+    <button class="btn btn-audit-new" onclick="auditNewCase()">+ New Case</button>
+    <button class="btn btn-primary" onclick="auditPrintCase()">🖨 Print</button>
+    <button class="btn btn-outline" onclick="auditExportCSV()">⬇ Export CSV</button>
+  </div>
+
+  <div class="audit-layout" id="auditLayout">
+
+    <!-- Left: Case list -->
+    <div class="case-list-card">
+      <div class="case-list-header">
+        <span>Cases</span>
+        <button class="del-btn" onclick="auditDeleteCurrent()" title="Delete selected case" style="color:#e74c3c;">✕ Delete</button>
+      </div>
+      <div class="case-list-body" id="caseListBody">
+        <div class="no-cases" id="noCasesMsg">No cases yet.<br>Click <strong>+ New Case</strong> to begin.</div>
+      </div>
+    </div>
+
+    <!-- Right: Form -->
+    <div class="audit-form-card" id="auditFormCard">
+      <div class="afc-header">
+        <h3>Paediatric Death Review Form</h3>
+        <span class="file-no">File No: <span id="afFileNo">—</span></span>
+      </div>
+      <div class="afc-body">
+
+        <!-- ── SECTION 1: Patient Details ── -->
+        <div class="audit-section">
+          <div class="audit-section-title"><span class="section-icon">👤</span> Patient Details</div>
+          <div class="audit-grid">
+            <div class="af"><label>District</label><input type="text" id="af-district" placeholder="e.g. Machinga"></div>
+            <div class="af"><label>File No.</label><input type="text" id="af-fileno" placeholder="Auto or manual" oninput="document.getElementById('afFileNo').textContent=this.value||'—'"></div>
+            <div class="af"><label>Patient Name</label><input type="text" id="af-name" placeholder="Full name"></div>
+            <div class="af"><label>Residential Address</label><input type="text" id="af-address" placeholder="Village / TA / District"></div>
+            <div class="af"><label>Date of Birth</label><input type="date" id="af-dob"></div>
+            <div class="af">
+              <label>Gender</label>
+              <div class="radio-group">
+                <label class="radio-opt"><input type="radio" name="af-gender" value="M"> Male</label>
+                <label class="radio-opt"><input type="radio" name="af-gender" value="F"> Female</label>
+              </div>
+            </div>
+            <div class="af"><label>Weight (kg)</label><input type="number" id="af-weight" step="0.1" min="0" placeholder="kg"></div>
+            <div class="af">
+              <label>Re-admission</label>
+              <div class="radio-group">
+                <label class="radio-opt"><input type="radio" name="af-readmit" value="Y"> Yes</label>
+                <label class="radio-opt"><input type="radio" name="af-readmit" value="N"> No</label>
+                <label class="radio-opt"><input type="radio" name="af-readmit" value="U"> Unknown</label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── SECTION 2: Admission & Death ── -->
+        <div class="audit-section">
+          <div class="audit-section-title"><span class="section-icon">🏥</span> Admission &amp; Death Details</div>
+          <div class="audit-grid">
+            <div class="af"><label>Date of Admission</label><input type="date" id="af-admdate"></div>
+            <div class="af"><label>Time of Admission</label><input type="time" id="af-admtime"></div>
+            <div class="af"><label>Date of Death</label><input type="date" id="af-deathdate"></div>
+            <div class="af"><label>Time of Death</label><input type="time" id="af-deathtime"></div>
+            <div class="af">
+              <label>When Death Occurred</label>
+              <div class="radio-group">
+                <label class="radio-opt"><input type="radio" name="af-when" value="Weekend"> Weekend</label>
+                <label class="radio-opt"><input type="radio" name="af-when" value="Public Holiday"> Public Holiday</label>
+                <label class="radio-opt"><input type="radio" name="af-when" value="Weekday"> Weekday</label>
+              </div>
+            </div>
+            <div class="af">
+              <label>Dead on Arrival / Brought in Dead</label>
+              <div class="radio-group">
+                <label class="radio-opt"><input type="radio" name="af-doa" value="Y"> Yes</label>
+                <label class="radio-opt"><input type="radio" name="af-doa" value="N"> No</label>
+                <label class="radio-opt"><input type="radio" name="af-doa" value="U"> Unknown</label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── SECTION 3: Records / CCP ── -->
+        <div class="audit-section">
+          <div class="audit-section-title"><span class="section-icon">📂</span> Records &amp; Critical Care Pathways (CCP)</div>
+          <div class="audit-grid-2">
+            <div class="af">
+              <label>1. File Present &amp; Used</label>
+              <div class="radio-group">
+                <label class="radio-opt"><input type="radio" name="af-file" value="Y"> Yes</label>
+                <label class="radio-opt"><input type="radio" name="af-file" value="N"> No</label>
+              </div>
+            </div>
+            <div class="af">
+              <label>2. CCP Used</label>
+              <div class="radio-group">
+                <label class="radio-opt"><input type="radio" name="af-ccp" value="Y"> Yes</label>
+                <label class="radio-opt"><input type="radio" name="af-ccp" value="N"> No</label>
+              </div>
+            </div>
+            <div class="af">
+              <label>3. Records Incomplete</label>
+              <div class="radio-group">
+                <label class="radio-opt"><input type="radio" name="af-incomplete" value="Y"> Yes</label>
+                <label class="radio-opt"><input type="radio" name="af-incomplete" value="N"> No</label>
+              </div>
+            </div>
+            <div class="af">
+              <label>4. Inadequate Quality of Notes</label>
+              <div class="radio-group">
+                <label class="radio-opt"><input type="radio" name="af-inadequate" value="Y"> Yes</label>
+                <label class="radio-opt"><input type="radio" name="af-inadequate" value="N"> No</label>
+              </div>
+            </div>
+            <div class="af">
+              <label>5. Records &amp; Notes OK</label>
+              <div class="radio-group">
+                <label class="radio-opt"><input type="radio" name="af-recok" value="Y"> Yes</label>
+                <label class="radio-opt"><input type="radio" name="af-recok" value="N"> No</label>
+              </div>
+            </div>
+            <div class="af">
+              <label>Emergency Signs / Triage</label>
+              <div class="radio-group">
+                <label class="radio-opt"><input type="radio" name="af-triage" value="E"> E (Emergency)</label>
+                <label class="radio-opt"><input type="radio" name="af-triage" value="P"> P (Priority)</label>
+                <label class="radio-opt"><input type="radio" name="af-triage" value="Q"> Q (Queue)</label>
+              </div>
+            </div>
+          </div>
+          <div class="audit-grid" style="margin-top:10px;">
+            <div class="af"><label>Name of Initial Emergency Treatment</label><input type="text" id="af-etname" placeholder="Treatment name"></div>
+            <div class="af"><label>Time Given</label><input type="time" id="af-ettime"></div>
+          </div>
+        </div>
+
+        <!-- ── SECTION 4: Referral ── -->
+        <div class="audit-section">
+          <div class="audit-section-title"><span class="section-icon">🚑</span> Referral Information</div>
+          <div class="af" style="margin-bottom:10px;">
+            <label>Was Patient Referred?</label>
+            <div class="radio-group">
+              <label class="radio-opt"><input type="radio" name="af-referred" value="Y" onclick="document.getElementById('referralDetails').style.display='block'"> Yes</label>
+              <label class="radio-opt"><input type="radio" name="af-referred" value="N" onclick="document.getElementById('referralDetails').style.display='none'"> No</label>
+            </div>
+          </div>
+          <div id="referralDetails" style="display:none;">
+            <div class="audit-grid">
+              <div class="af"><label>Name of Referring Facility</label><input type="text" id="af-reffac" placeholder="Facility name"></div>
+              <div class="af">
+                <label>Facility Type</label>
+                <select id="af-reftype">
+                  <option value="">— Select —</option>
+                  <option>Hospital</option>
+                  <option>Health Centre</option>
+                  <option>Private</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <div class="af"><label>Referral Date</label><input type="date" id="af-refdate"></div>
+              <div class="af"><label>Referral Time</label><input type="time" id="af-reftime"></div>
+              <div class="af"><label>Diagnosis on Referral</label><input type="text" id="af-refdiag" placeholder="Diagnosis"></div>
+              <div class="af"><label>Reason for Referral</label><input type="text" id="af-refreason" placeholder="Reason"></div>
+              <div class="af"><label>Pre-Referral Treatment Given</label><input type="text" id="af-preref" placeholder="Treatment"></div>
+              <div class="af"><label>Mode of Transport</label><input type="text" id="af-transport" placeholder="e.g. Ambulance, bicycle, foot"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── SECTION 5: Social History ── -->
+        <div class="audit-section">
+          <div class="audit-section-title"><span class="section-icon">👨‍👩‍👧</span> Social History</div>
+          <div class="audit-grid">
+            <div class="af">
+              <label>Mother's Status</label>
+              <select id="af-mother">
+                <option value="">— Select —</option>
+                <option>Alive and well</option>
+                <option>Dead</option>
+                <option>Sick</option>
+                <option>Unknown</option>
+              </select>
+            </div>
+            <div class="af">
+              <label>Father's Status</label>
+              <select id="af-father">
+                <option value="">— Select —</option>
+                <option>Alive and well</option>
+                <option>Dead</option>
+                <option>Sick</option>
+                <option>Unknown</option>
+              </select>
+            </div>
+            <div class="af">
+              <label>Primary Caregiver</label>
+              <select id="af-caregiver">
+                <option value="">— Select —</option>
+                <option>Mother</option>
+                <option>Grandmother</option>
+                <option>Father</option>
+                <option>Other</option>
+                <option>Unknown</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── SECTION 6: Nutrition ── -->
+        <div class="audit-section">
+          <div class="audit-section-title"><span class="section-icon">🥗</span> Nutrition</div>
+          <div class="audit-grid">
+            <div class="af">
+              <label>Nutritional Status</label>
+              <div class="radio-group">
+                <label class="radio-opt"><input type="radio" name="af-nutrition" value="Well nourished"> Well nourished</label>
+                <label class="radio-opt"><input type="radio" name="af-nutrition" value="Malnourished"> Malnourished</label>
+              </div>
+            </div>
+            <div class="af"><label>If Malnourished, Specify</label><input type="text" id="af-malspec" placeholder="e.g. SAM, MAM, Kwashiorkor"></div>
+            <div class="af">
+              <label>Feeding in First 6 Months</label>
+              <select id="af-feeding">
+                <option value="">— Select —</option>
+                <option>Exclusive breast for 6 months</option>
+                <option>No breast, ever</option>
+                <option>Mixed</option>
+                <option>Unknown</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── SECTION 7: HIV ── -->
+        <div class="audit-section">
+          <div class="audit-section-title"><span class="section-icon">🧬</span> HIV Status &amp; Management</div>
+          <div class="audit-grid">
+            <div class="af">
+              <label>HIV Status (Child)</label>
+              <select id="af-hiv">
+                <option value="">— Select —</option>
+                <option>Not HIV infected</option>
+                <option>HIV exposed (perinatal or ongoing breast milk)</option>
+                <option>HIV infected</option>
+                <option>Unknown</option>
+              </select>
+            </div>
+            <div class="af">
+              <label>HIV Stage</label>
+              <select id="af-hivstage">
+                <option value="">— Select —</option>
+                <option>Stage I</option>
+                <option>Stage II</option>
+                <option>Stage III</option>
+                <option>Stage IV</option>
+                <option>Not staged (but indicated)</option>
+                <option>Not staged (not HIV infected)</option>
+                <option>Unknown</option>
+              </select>
+            </div>
+            <div class="af">
+              <label>Perinatal ARV</label>
+              <select id="af-arv">
+                <option value="">— Select —</option>
+                <option>Prophylaxis given</option>
+                <option>Prophylaxis not given</option>
+                <option>Mother not infected at delivery</option>
+                <option>Unknown</option>
+              </select>
+            </div>
+            <div class="af">
+              <label>CPT Prophylaxis (Cotrimoxazole)</label>
+              <select id="af-cpt">
+                <option value="">— Select —</option>
+                <option>Yes</option>
+                <option>No (but indicated)</option>
+                <option>No (not eligible)</option>
+                <option>No (not HIV infected)</option>
+                <option>Unknown</option>
+              </select>
+            </div>
+            <div class="af">
+              <label>ART (Child)</label>
+              <select id="af-art">
+                <option value="">— Select —</option>
+                <option>Yes</option>
+                <option>No (but indicated)</option>
+                <option>No (not eligible)</option>
+                <option>No (not HIV infected)</option>
+                <option>Unknown</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── SECTION 8: Cause of Death ── -->
+        <div class="audit-section">
+          <div class="audit-section-title"><span class="section-icon">💀</span> Cause of Death (ICD Codes)</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div class="icd-row"><div class="af"><label>Code (a)</label><input type="text" id="af-cod-code-a" placeholder="ICD"></div><div class="af"><label>Immediate Cause (a)</label><input type="text" id="af-cod-a" placeholder="Primary cause of death"></div></div>
+            <div class="icd-row"><div class="af"><label>Code (b)</label><input type="text" id="af-cod-code-b" placeholder="ICD"></div><div class="af"><label>Due to (b)</label><input type="text" id="af-cod-b" placeholder=""></div></div>
+            <div class="icd-row"><div class="af"><label>Code (c)</label><input type="text" id="af-cod-code-c" placeholder="ICD"></div><div class="af"><label>Due to (c)</label><input type="text" id="af-cod-c" placeholder=""></div></div>
+            <div class="icd-row"><div class="af"><label>Code (d)</label><input type="text" id="af-cod-code-d" placeholder="ICD"></div><div class="af"><label>Due to (d)</label><input type="text" id="af-cod-d" placeholder=""></div></div>
+            <div class="icd-row"><div class="af"><label>Other 1 Code</label><input type="text" id="af-other1-code" placeholder="ICD"></div><div class="af"><label>Other Significant Condition 1</label><input type="text" id="af-other1" placeholder=""></div></div>
+            <div class="icd-row"><div class="af"><label>Other 2 Code</label><input type="text" id="af-other2-code" placeholder="ICD"></div><div class="af"><label>Other Significant Condition 2</label><input type="text" id="af-other2" placeholder=""></div></div>
+            <div class="icd-row"><div class="af"><label>Other 3 Code</label><input type="text" id="af-other3-code" placeholder="ICD"></div><div class="af"><label>Other Significant Condition 3</label><input type="text" id="af-other3" placeholder=""></div></div>
+          </div>
+        </div>
+
+        <!-- ── SECTION 9: Modifiable Factors ── -->
+        <div class="audit-section">
+          <div class="audit-section-title"><span class="section-icon">⚙️</span> Modifiable Factors</div>
+          <p style="font-size:0.78rem;color:var(--muted);margin-bottom:10px;">Insert codes for modifiable factors at Emergency/Admission/Ward and Referring Facility &amp; Transit</p>
+          <table class="mod-factors-table" id="modFactorsTable">
+            <thead>
+              <tr>
+                <th>Code</th>
+                <th>Location</th>
+                <th>Description / Comments</th>
+                <th style="width:36px;"></th>
+              </tr>
+            </thead>
+            <tbody id="modFactorsTbody">
+              <tr>
+                <td><input type="text" placeholder="Code"></td>
+                <td><select><option>Emergency/Admission/Ward</option><option>Referring Facility &amp; Transit</option></select></td>
+                <td><input type="text" placeholder="Comments"></td>
+                <td><button class="del-btn" onclick="this.closest('tr').remove()">✕</button></td>
+              </tr>
+            </tbody>
+          </table>
+          <button class="add-row-btn" onclick="auditAddModFactor()">+ Add Modifiable Factor</button>
+        </div>
+
+        <!-- ── SECTION 10: Avoidability ── -->
+        <div class="audit-section">
+          <div class="audit-section-title"><span class="section-icon">⚖️</span> Avoidability Assessment</div>
+          <p style="font-size:0.8rem;color:var(--muted);margin-bottom:12px;">In your opinion, had the process of caring been different, would this death have been avoidable?</p>
+          <div class="radio-group" style="margin-bottom:14px;">
+            <label class="radio-opt" onclick="setVerdict('avoidable')"><input type="radio" name="af-avoidable" value="Yes"> ✅ Yes — Avoidable</label>
+            <label class="radio-opt" onclick="setVerdict('unsure')"><input type="radio" name="af-avoidable" value="Not sure"> ❓ Not Sure</label>
+            <label class="radio-opt" onclick="setVerdict('not-avoidable')"><input type="radio" name="af-avoidable" value="No"> ❌ No — Not Avoidable</label>
+            <label class="radio-opt" onclick="setVerdict('')"><input type="radio" name="af-avoidable" value="Unknown"> Unknown</label>
+          </div>
+          <div id="verdictCard" style="display:none;" class="verdict-card">
+            <div class="verdict-label" id="verdictLabel"></div>
+          </div>
+        </div>
+
+        <!-- ── SECTION 11: Case Summary ── -->
+        <div class="audit-section">
+          <div class="audit-section-title"><span class="section-icon">📝</span> Case Summary &amp; Comments</div>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div class="af"><label>Child's Details (age, where from, admission date/time)</label><textarea id="af-summary-child" rows="3" placeholder="Summarise child's details…"></textarea></div>
+            <div class="af"><label>History of Presenting Complaint</label><textarea id="af-summary-hpc" rows="3" placeholder="History of presenting complaint…"></textarea></div>
+            <div class="af"><label>Relevant Background History</label><textarea id="af-summary-bg" rows="3" placeholder="Relevant background history…"></textarea></div>
+            <div class="af"><label>Examination Findings</label><textarea id="af-summary-exam" rows="3" placeholder="Examination findings…"></textarea></div>
+            <div class="audit-grid-3">
+              <div class="af"><label>Weight (exam)</label><input type="text" id="af-ex-weight" placeholder="kg"></div>
+              <div class="af"><label>Height / Length</label><input type="text" id="af-ex-height" placeholder="cm"></div>
+              <div class="af"><label>MUAC</label><input type="text" id="af-ex-muac" placeholder="cm"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── SECTION 12: Modifiable Factors & Solutions ── -->
+        <div class="audit-section">
+          <div class="audit-section-title"><span class="section-icon">🛠</span> Modifiable Factors &amp; Proposed Solutions</div>
+          <table class="mod-factors-table" id="solutionsTable">
+            <thead>
+              <tr>
+                <th>Modifiable Factor</th>
+                <th>Proposed Solution</th>
+                <th>By Whom</th>
+                <th>By When</th>
+                <th style="width:36px;"></th>
+              </tr>
+            </thead>
+            <tbody id="solutionsTbody">
+              <tr>
+                <td><input type="text" placeholder="Describe factor"></td>
+                <td><input type="text" placeholder="Proposed solution"></td>
+                <td><input type="text" placeholder="Responsible person"></td>
+                <td><input type="date"></td>
+                <td><button class="del-btn" onclick="this.closest('tr').remove()">✕</button></td>
+              </tr>
+            </tbody>
+          </table>
+          <button class="add-row-btn" onclick="auditAddSolution()">+ Add Row</button>
+        </div>
+
+        <!-- Save bar -->
+        <div class="audit-save-bar">
+          <button class="btn btn-audit-save" onclick="auditSaveCase()">💾 Save Case</button>
+          <button class="btn btn-audit-new" onclick="auditNewCase()">+ New Case</button>
+          <span class="save-status" id="auditSaveStatus"></span>
+        </div>
+
+      </div><!-- /.afc-body -->
+    </div><!-- /.audit-form-card -->
+
+  </div><!-- /.audit-layout -->
+</div><!-- /.audit-container -->
+</div><!-- /#auditPage -->
+
+<!-- ════════════ PHOTO EXTRACTION MODAL ════════════ -->
+<div class="modal-overlay" id="photoModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>📷 Extract Data from Photo</h2>
+      <button class="modal-close" onclick="closePhotoModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:0.8rem;color:#888;margin-bottom:16px;line-height:1.6;">
+        Take or upload a photo of a ward worksheet. Claude AI will read the numbers and auto-fill the form for you.
+      </p>
+
+      <div class="drop-zone" id="dropZone">
+        <input type="file" id="photoInput" accept="image/*" capture="environment" onchange="handlePhotoSelect(event)">
+        <div class="dz-icon">🖼️</div>
+        <div class="dz-label">Tap to take photo or choose from gallery</div>
+        <div class="dz-sub">JPG, PNG, HEIC supported · max 10MB</div>
+      </div>
+
+      <div class="img-preview" id="imgPreview">
+        <img id="previewImg" src="" alt="Preview">
+        <button class="remove-btn" onclick="removePhoto()">✕ Remove</button>
+      </div>
+
+      <button class="extract-btn" id="extractBtn" onclick="extractFromPhoto()">
+        ✨ Extract Data with AI
+      </button>
+
+      <div class="extract-progress" id="extractProgress">
+        <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill"></div></div>
+        <div class="progress-text" id="progressText">Sending image to Claude AI...</div>
+      </div>
+
+      <div class="error-msg" id="errorMsg"></div>
+
+      <div class="extract-results" id="extractResults">
+        <h3>✅ Extraction Complete — Review Before Applying</h3>
+        <div class="result-summary" id="resultSummary"></div>
+        <div class="result-rows" id="resultRows">
+          <div class="result-row header">
+            <span>No.</span><span>Disease</span>
+            <span style="text-align:center">&lt;5 D.</span>
+            <span style="text-align:center">≥5 D.</span>
+            <span style="text-align:center">&lt;5 Dth</span>
+            <span style="text-align:center">≥5 Dth</span>
+          </div>
+        </div>
+        <button class="apply-btn" onclick="applyExtractedData()">✅ Apply to Form</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── Disease list ─────────────────────────────────────────────────────────────
+const diseases = [
+  {section:'Communicable Diseases'},
+  {code:'1',  name:'Acute Flaccid Paralysis',             cat:'Communicable'},
+  {code:'2',  name:'Diphtheria',                          cat:'Communicable'},
+  {code:'3',  name:'Measles',                             cat:'Communicable'},
+  {code:'4',  name:'Neo-natal Tetanus',                   cat:'Communicable'},
+  {code:'5',  name:'Tetanus',                             cat:'Communicable'},
+  {code:'6',  name:'Tuberculosis',                        cat:'Communicable'},
+  {code:'7',  name:'Whooping Cough',                      cat:'Communicable'},
+  {code:'8',  name:'Upper Respiratory Infection',         cat:'Communicable'},
+  {code:'9',  name:'Pneumonia',                           cat:'Communicable'},
+  {code:'10', name:'Asthma',                              cat:'Communicable'},
+  {code:'11', name:'Other Lower Respiratory Infection',   cat:'Communicable'},
+  {code:'55', name:'Acute Respiratory Infection - U/S',   cat:'Communicable'},
+  {code:'12', name:'Cholera',                             cat:'Communicable'},
+  {code:'13', name:'Dysentery',                           cat:'Communicable'},
+  {code:'14a',name:'Diarrhoea Diseases - U/S',            cat:'Communicable'},
+  {code:'14b',name:'Diarrhoea Diseases - O/S',            cat:'Communicable'},
+  {code:'15a',name:'Anaemia',                             cat:'Communicable'},
+  {code:'15b',name:'Severe Anaemia in Pregnancy',         cat:'Communicable'},
+  {code:'16', name:'Goitre',                              cat:'Communicable'},
+  {code:'17a',name:'Malnutrition - U/S',                  cat:'Communicable'},
+  {code:'17b',name:'Malnutrition - O/S',                  cat:'Communicable'},
+  {code:'18', name:'Hypertension',                        cat:'Communicable'},
+  {code:'19', name:'Other Heart Diseases',                cat:'Communicable'},
+  {code:'20', name:'Acute Psychiatric Disorder',          cat:'Communicable'},
+  {code:'21', name:'Chronic Psychiatric Disorder',        cat:'Communicable'},
+  {code:'22', name:'Epilepsy',                            cat:'Communicable'},
+  {code:'23', name:'Acute Eye Infection',                 cat:'Communicable'},
+  {code:'24', name:'Cataract',                            cat:'Communicable'},
+  {code:'25', name:'Dental Decay',                        cat:'Communicable'},
+  {code:'26', name:'Other Oral Conditions',               cat:'Communicable'},
+  {code:'27', name:'Leprosy',                             cat:'Communicable'},
+  {code:'28', name:'Scabies',                             cat:'Communicable'},
+  {code:'29', name:'Other Skin Conditions',               cat:'Communicable'},
+  {code:'30', name:'AIDS',                                cat:'Communicable'},
+  {code:'31', name:'Sexually Transmitted Infection - STI',cat:'Communicable'},
+  {code:'31p',name:'Syphilis in Pregnancy',               cat:'Communicable'},
+  {code:'32a',name:'Malaria - U/S',                       cat:'Communicable'},
+  {code:'32b',name:'Malaria - O/S',                       cat:'Communicable'},
+  {code:'33', name:'Bilharzia',                           cat:'Communicable'},
+  {code:'34', name:'Chicken Pox',                         cat:'Communicable'},
+  {code:'35', name:'Ebola',                               cat:'Communicable'},
+  {code:'36', name:'Intestinal Worms',                    cat:'Communicable'},
+  {code:'37', name:'Jaundice & Infective Hepatitis',      cat:'Communicable'},
+  {code:'38', name:'Meningitis',                          cat:'Communicable'},
+  {code:'39', name:'Plague',                              cat:'Communicable'},
+  {code:'40', name:'Typhoid',                             cat:'Communicable'},
+  {code:'41', name:'Yellow Fever',                        cat:'Communicable'},
+  {code:'42', name:'Rabies',                              cat:'Communicable'},
+  {code:'43', name:'All Other Communicable Diseases',     cat:'Communicable'},
+  {section:'Opportunistic & Gynaecological'},
+  {code:'51', name:'Opportunistic Infections',            cat:'Gynaecological'},
+  {code:'44a',name:'Gynaecological Disorders',            cat:'Gynaecological'},
+  {code:'44b',name:'Abortion Complications',              cat:'Gynaecological'},
+  {code:'52', name:'Eclampsia',                           cat:'Gynaecological'},
+  {code:'53', name:'Postpartum Sepsis',                   cat:'Gynaecological'},
+  {code:'54', name:'Postpartum Haemorrhage',              cat:'Gynaecological'},
+  {code:'55b',name:'New Born Complications',              cat:'Gynaecological'},
+  {code:'45', name:'Other Genital-Urinary Tract Infections',cat:'Gynaecological'},
+  {section:'Non-Communicable & Surgical'},
+  {code:'46', name:'Musculoskeletal Pains',               cat:'NonCommunicable'},
+  {code:'47a',name:'Traumatic Conditions',                cat:'NonCommunicable'},
+  {code:'47b',name:'Road Traffic Accidents',              cat:'NonCommunicable'},
+  {code:'48', name:'Ear Infections',                      cat:'NonCommunicable'},
+  {code:'49', name:'All Other Non-communicable Diseases', cat:'NonCommunicable'},
+  {code:'50', name:'All Other Surgical Conditions',       cat:'NonCommunicable'},
+];
+
+// ─── Build table ──────────────────────────────────────────────────────────────
+const tbody = document.getElementById('tableBody');
+diseases.forEach(d => {
+  if (d.section) {
+    const tr = document.createElement('tr');
+    tr.className = 'section-header';
+    tr.innerHTML = `<td colspan="9">${d.section}</td>`;
+    tbody.appendChild(tr); return;
+  }
+  const id = 'r_' + d.code.replace(/[^a-z0-9]/gi,'_');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td class="code">${d.code}</td>
+    <td class="disease-name">${d.name}</td>
+    <td><input type="number" min="0" data-row="${id}" data-col="du5"  oninput="calcRow('${id}')" placeholder=""></td>
+    <td><input type="number" min="0" data-row="${id}" data-col="do5"  oninput="calcRow('${id}')" placeholder=""></td>
+    <td class="total-cell"        id="${id}_dtot">0</td>
+    <td><input type="number" min="0" data-row="${id}" data-col="dtu5" oninput="calcRow('${id}')" placeholder=""></td>
+    <td><input type="number" min="0" data-row="${id}" data-col="dto5" oninput="calcRow('${id}')" placeholder=""></td>
+    <td class="total-cell deaths" id="${id}_dttot">0</td>
+    <td class="grand-total"       id="${id}_grand">0</td>`;
+  tbody.appendChild(tr);
+});
+
+// ── Set month/year to previous month on load ──────────────────────────────────
+(function() {
+  const now = new Date();
+  let pm = now.getMonth() - 1;
+  const py = now.getFullYear(); // always current year
+  if (pm < 0) { pm = 11; }     // roll back to December but keep current year
+  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+  // Populate year dropdown: current year first, then 5 years back
+  const yearSel = document.getElementById('year');
+  for (let y = py; y >= py - 5; y--) {
+    const opt = document.createElement('option');
+    opt.value = y;
+    opt.textContent = y;
+    yearSel.appendChild(opt);
+  }
+
+  document.getElementById('month').value = MONTHS[pm];
+  document.getElementById('year').value  = py;
+})();
+
+// Initialize submit label on page load (loadPeriodData is called inside updateSub which fires on ward/month/year change;
+// trigger it explicitly on load once all functions are defined)
+updateSubmitLabel();
+// Load any existing data for the default period once the DB functions are available
+window.addEventListener('DOMContentLoaded', () => loadPeriodData());
+
+// ─── Calc ─────────────────────────────────────────────────────────────────────
+function gv(el) { return parseInt(el.value)||0; }
+function calcRow(id) {
+  const du5=gv(document.querySelector(`[data-row="${id}"][data-col="du5"]`));
+  const do5=gv(document.querySelector(`[data-row="${id}"][data-col="do5"]`));
+  const dtu5=gv(document.querySelector(`[data-row="${id}"][data-col="dtu5"]`));
+  const dto5=gv(document.querySelector(`[data-row="${id}"][data-col="dto5"]`));
+  document.getElementById(`${id}_dtot`).textContent  = du5+do5;
+  document.getElementById(`${id}_dttot`).textContent = dtu5+dto5;
+  document.getElementById(`${id}_grand`).textContent = du5+do5+dtu5+dto5;
+  calcFooter();
+}
+function calcFooter() {
+  let du5=0,do5=0,dtu5=0,dto5=0;
+  document.querySelectorAll('[data-col="du5"]').forEach(e=>du5+=gv(e));
+  document.querySelectorAll('[data-col="do5"]').forEach(e=>do5+=gv(e));
+  document.querySelectorAll('[data-col="dtu5"]').forEach(e=>dtu5+=gv(e));
+  document.querySelectorAll('[data-col="dto5"]').forEach(e=>dto5+=gv(e));
+  document.getElementById('f-du5').textContent   = du5;
+  document.getElementById('f-do5').textContent   = do5;
+  document.getElementById('f-dtot').textContent  = du5+do5;
+  document.getElementById('f-dtu5').textContent  = dtu5;
+  document.getElementById('f-dto5').textContent  = dto5;
+  document.getElementById('f-dttot').textContent = dtu5+dto5;
+  document.getElementById('f-grand').textContent = du5+do5+dtu5+dto5;
+  document.getElementById('deathsAuto').value    = (dtu5+dto5)||'';
+  schedViz();
+}
+
+// ─── Subtitle ─────────────────────────────────────────────────────────────────
+function updateSub() {
+  const s = `${document.getElementById('ward').value} · ${document.getElementById('month').value} ${document.getElementById('year').value}`;
+  document.getElementById('headerSub').textContent = 'Machinga District Hospital — ' + s;
+  document.getElementById('vizSub').textContent    = '— ' + s;
+  updateSubmitLabel();
+  loadPeriodData();
+}
+
+// ─── Tab ──────────────────────────────────────────────────────────────────────
+let dashInitDone = false;
+function switchTab(tab) {
+  const tabs    = ['entry','viz','explorer','audit'];
+  const pageIds = ['entryPage','vizPage','explorerPage','auditPage'];
+  tabs.forEach((t,i) => {
+    document.querySelectorAll('.tab-btn')[i].classList.toggle('active', t===tab);
+    document.getElementById(pageIds[i]).classList.toggle('active', t===tab);
+  });
+  document.getElementById('clearBtn').style.display = tab==='entry' ? '' : 'none';
+  if (tab==='viz') {
+    if (!dashInitDone) {
+      dashInitDone = true;
+      dashSetDefaultFilter();
+    }
+    dashRefreshYearPicker().then(() => buildDashboard());
+  }
+  if (tab==='explorer') vzInit();
+  if (tab==='audit')    auditInit();
+}
+
+// ─── Clear ────────────────────────────────────────────────────────────────────
+function clearAll() {
+  if (!confirm('Clear all entered data from the form? (Saved data in the database will not be affected.)')) return;
+  document.querySelectorAll('#entryPage input[type="number"]').forEach(e => e.value='');
+  document.getElementById('deathsAuto').value='';
+  diseases.forEach(d => {
+    if (d.section) return;
+    const id = 'r_' + d.code.replace(/[^a-z0-9]/gi,'_');
+    ['dtot','dttot','grand'].forEach(s => { const el=document.getElementById(`${id}_${s}`); if(el) el.textContent='0'; });
+  });
+  ['f-du5','f-do5','f-dtot','f-dtu5','f-dto5','f-dttot','f-grand'].forEach(id => document.getElementById(id).textContent='0');
+  updateSubmitLabel();
+}
+
+// ─── IndexedDB Database ────────────────────────────────────────────────────────
+let wardDB = null;
+const MONTHS_LIST = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function dbOpen() {
+  return new Promise((resolve, reject) => {
+    if (wardDB) { resolve(wardDB); return; }
+    // Version 3: periods + auditCases stores
+    const req = indexedDB.open('WardWorksheetDB', 3);
+    req.onupgradeneeded = e => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains('periods')) {
+        const s = db.createObjectStore('periods', { keyPath: 'key' });
+        s.createIndex('year',    'year',    { unique: false });
+        s.createIndex('ward',    'ward',    { unique: false });
+        s.createIndex('quarter', 'quarter', { unique: false });
+      }
+      if (!db.objectStoreNames.contains('auditCases')) {
+        db.createObjectStore('auditCases', { keyPath: 'fileKey' });
+      }
+    };
+    req.onsuccess = e => { wardDB = e.target.result; resolve(wardDB); };
+    req.onerror   = e => reject(e.target.error);
+  });
+}
+
+function dbPut(record) {
+  return dbOpen().then(db => new Promise((resolve, reject) => {
+    const tx = db.transaction('periods', 'readwrite');
+    tx.objectStore('periods').put(record);
+    tx.oncomplete = () => resolve();
+    tx.onerror    = e => reject(e.target.error);
+  }));
+}
+
+function dbGetAll() {
+  return dbOpen().then(db => new Promise((resolve, reject) => {
+    const req = db.transaction('periods', 'readonly').objectStore('periods').getAll();
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror   = e => reject(e.target.error);
+  }));
+}
+
+// ─── Submit period data → IndexedDB ───────────────────────────────────────────
+let submittedPeriods = [];
+
+function updateSubmitLabel() {
+  const ward  = document.getElementById('ward').value;
+  const month = document.getElementById('month').value;
+  const year  = document.getElementById('year').value;
+  document.getElementById('submitPeriodLabel').textContent = `${ward} · ${month} ${year}`;
+  checkSubmitState();
+}
+
+// Check if the current ward/month/year combo is already in DB and style the button
+async function checkSubmitState() {
+  const ward  = document.getElementById('ward').value;
+  const month = document.getElementById('month').value;
+  const year  = document.getElementById('year').value;
+  const key   = `${ward}|${month}|${year}`;
+  const btn   = document.querySelector('.btn-submit');
+  if (!btn) return;
+  const all = await dbGetAll();
+  const saved = all.find(p => p.key === key);
+  if (saved) {
+    btn.textContent = '✅ Saved — Click to Update';
+    btn.style.background = '#1a5c3a';
+    btn.style.color = 'white';
+    btn.style.boxShadow = '0 3px 10px rgba(26,92,58,0.4)';
+  } else {
+    btn.textContent = '✅ Submit & Save Period';
+    btn.style.background = '';
+    btn.style.color = '';
+    btn.style.boxShadow = '';
+  }
+}
+
+// Load data from DB into the form for the current ward/month/year
+async function loadPeriodData() {
+  const ward  = document.getElementById('ward').value;
+  const month = document.getElementById('month').value;
+  const year  = document.getElementById('year').value;
+  const key   = `${ward}|${month}|${year}`;
+  const all   = await dbGetAll();
+  const rec   = all.find(p => p.key === key);
+
+  // Clear form first
+  document.querySelectorAll('#entryPage input[type="number"]:not(#deathsAuto)').forEach(e => e.value = '');
+  document.getElementById('deathsAuto').value = '';
+  diseases.forEach(d => {
+    if (d.section) return;
+    const id = 'r_' + d.code.replace(/[^a-z0-9]/gi,'_');
+    ['dtot','dttot','grand'].forEach(s => { const el=document.getElementById(`${id}_${s}`); if(el) el.textContent='0'; });
+  });
+  ['f-du5','f-do5','f-dtot','f-dtu5','f-dto5','f-dttot','f-grand'].forEach(id => document.getElementById(id).textContent='0');
+
+  if (!rec) { checkSubmitState(); return; }
+
+  // Restore summary fields
+  if (rec.totalAdm)   document.getElementById('totalAdmissions').value = rec.totalAdm;
+  if (rec.inpatDays)  document.getElementById('inpatientDays').value   = rec.inpatDays;
+  if (rec.refFrom)    document.getElementById('referralsFrom').value    = rec.refFrom;
+  if (rec.refTo)      document.getElementById('referralsTo').value      = rec.refTo;
+  if (rec.abscondees) document.getElementById('abscondees').value       = rec.abscondees;
+
+  // Restore disease rows
+  Object.entries(rec.diseaseData || {}).forEach(([code, r]) => {
+    const id = 'r_' + code.replace(/[^a-z0-9]/gi,'_');
+    ['du5','do5','dtu5','dto5'].forEach(col => {
+      const el = document.querySelector(`[data-row="${id}"][data-col="${col}"]`);
+      if (el && r[col]) { el.value = r[col]; }
+    });
+    calcRow(id);
+  });
+
+  checkSubmitState();
+}
+
+async function submitPeriodData() {
+  const ward  = document.getElementById('ward').value;
+  const month = document.getElementById('month').value;
+  const year  = document.getElementById('year').value;
+  const key   = `${ward}|${month}|${year}`;
+
+  const diseaseData     = collectData();
+  const totalAdm        = parseInt(document.getElementById('totalAdmissions').value)||0;
+  const inpatDays       = parseInt(document.getElementById('inpatientDays').value)||0;
+  const refFrom         = parseInt(document.getElementById('referralsFrom').value)||0;
+  const refTo           = parseInt(document.getElementById('referralsTo').value)||0;
+  const deaths          = parseInt(document.getElementById('deathsAuto').value)||0;
+  const abscondees      = parseInt(document.getElementById('abscondees').value)||0;
+  const totalDiseaseAdm = Object.values(diseaseData).reduce((s,r)=>s+r.grand,0);
+
+  const mi      = MONTHS_LIST.indexOf(month);
+  const quarter = mi < 3 ? 'Q1' : mi < 6 ? 'Q2' : mi < 9 ? 'Q3' : 'Q4';
+
+  await dbPut({
+    key, ward, month, year: parseInt(year), quarter,
+    totalAdm, inpatDays, refFrom, refTo, deaths, abscondees,
+    diseaseData, totalDiseaseAdm,
+    submittedAt: new Date().toISOString(),
+    submittedBy: currentUser ? currentUser.name : 'Unknown'
+  });
+
+  await dashRefreshYearPicker();
+
+  const b = document.createElement('div');
+  b.style.cssText = `position:fixed;top:70px;left:50%;transform:translateX(-50%);
+    background:linear-gradient(135deg,#1a3a2a,#1a5c3a);color:white;
+    padding:14px 32px;border-radius:10px;font-family:'IBM Plex Mono',monospace;
+    font-size:0.82rem;z-index:9000;letter-spacing:0.05em;
+    box-shadow:0 6px 24px rgba(0,0,0,0.3);white-space:nowrap;text-align:center;`;
+  b.innerHTML = `✅ <strong>${ward} — ${month} ${year}</strong> saved to database!<br>
+    <span style="font-size:0.7rem;opacity:0.8;">${totalDiseaseAdm} total admissions · ${deaths} deaths</span>`;
+  document.body.appendChild(b);
+  setTimeout(() => b.remove(), 4000);
+
+  checkSubmitState();
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+// ─── Collect data ─────────────────────────────────────────────────────────────
+function collectData() {
+  const rows = {};
+  diseases.forEach(d => {
+    if (d.section) return;
+    const id = 'r_' + d.code.replace(/[^a-z0-9]/gi,'_');
+    const du5  = gv(document.querySelector(`[data-row="${id}"][data-col="du5"]`));
+    const do5  = gv(document.querySelector(`[data-row="${id}"][data-col="do5"]`));
+    const dtu5 = gv(document.querySelector(`[data-row="${id}"][data-col="dtu5"]`));
+    const dto5 = gv(document.querySelector(`[data-row="${id}"][data-col="dto5"]`));
+    rows[d.code] = {name:d.name, cat:d.cat, du5, do5, dtot:du5+do5, dtu5, dto5, dttot:dtu5+dto5, grand:du5+do5+dtu5+dto5};
+  });
+  return rows;
+}
+
+// ─── Charts ───────────────────────────────────────────────────────────────────
+const CH = {};
+let vizTimer;
+function schedViz() { /* Dashboard now reads from DB — no live update needed */ }
+
+const CC = { Communicable:{u5:'#2ecc71',o5:'#27ae60'}, Gynaecological:{u5:'#9b59b6',o5:'#8e44ad'}, NonCommunicable:{u5:'#3498db',o5:'#2980b9'} };
+const DC = { Communicable:{u5:'#e74c3c',o5:'#c0392b'}, Gynaecological:{u5:'#f39c12',o5:'#e67e22'}, NonCommunicable:{u5:'#1abc9c',o5:'#16a085'} };
+
+const GC={color:'rgba(0,0,0,0.06)'};
+const TC={color:'#64748b',font:{family:"'IBM Plex Sans'",size:10}};
+const LC={labels:{color:'#64748b',font:{family:"'IBM Plex Sans'",size:11}}};
+
+function dch(id) { if(CH[id]){CH[id].destroy();delete CH[id];} }
+
+function dashSetMode(mode) {
+  document.querySelectorAll('.dft').forEach(b => b.classList.toggle('active', b.dataset.mode===mode));
+  document.getElementById('dfgMonth').style.display   = mode==='month'   ? '' : 'none';
+  document.getElementById('dfgQuarter').style.display = mode==='quarter' ? '' : 'none';
+  document.getElementById('dfgYear').style.display    = (mode==='year'||mode==='month'||mode==='quarter') ? '' : 'none';
+  buildDashboard();
+}
+
+async function dashRefreshYearPicker() {
+  const all   = await dbGetAll();
+  const years = [...new Set(all.map(p=>p.year))].sort((a,b)=>b-a);
+  const sel   = document.getElementById('dfYear');
+  const cur   = sel.value;
+  sel.innerHTML = years.map(y=>`<option ${y==cur?'selected':''}>${y}</option>`).join('') || `<option>${new Date().getFullYear()}</option>`;
+}
+
+// Set default filter to previous month
+function dashSetDefaultFilter() {
+  const now  = new Date();
+  let   pm   = now.getMonth() - 1;
+  let   py   = now.getFullYear();
+  if (pm < 0) { pm = 11; py--; }
+  const el = document.getElementById('dfMonth');
+  if (el) el.value = MONTHS_LIST[pm];
+  const ye = document.getElementById('dfYear');
+  if (ye) { ye.innerHTML = `<option>${py}</option>`; ye.value = py; }
+}
+
+async function dashGetFilteredData() {
+  const all    = await dbGetAll();
+  const mode   = document.querySelector('.dft.active')?.dataset.mode || 'month';
+  const year   = parseInt(document.getElementById('dfYear')?.value) || new Date().getFullYear();
+  const ward   = document.getElementById('dfWard')?.value || 'all';
+
+  let filtered = all;
+  if (ward !== 'all') filtered = filtered.filter(p => p.ward === ward);
+
+  if (mode === 'month') {
+    const month = document.getElementById('dfMonth')?.value;
+    filtered = filtered.filter(p => p.month === month && p.year === year);
+  } else if (mode === 'quarter') {
+    const q = document.getElementById('dfQuarter')?.value;
+    filtered = filtered.filter(p => p.quarter === q && p.year === year);
+  } else if (mode === 'year') {
+    filtered = filtered.filter(p => p.year === year);
+  }
+  // 'all' returns everything (already filtered by ward)
+  return { filtered, mode, year, all };
+}
+
+// Merge multiple period records into one aggregated disease data object
+function dashMergeRecords(records) {
+  const merged = {};
+  records.forEach(rec => {
+    Object.entries(rec.diseaseData||{}).forEach(([code, r]) => {
+      if (!merged[code]) merged[code] = { name:r.name, cat:r.cat, du5:0, do5:0, dtot:0, dtu5:0, dto5:0, dttot:0, grand:0 };
+      merged[code].du5   += r.du5||0;
+      merged[code].do5   += r.do5||0;
+      merged[code].dtot  += r.dtot||0;
+      merged[code].dtu5  += r.dtu5||0;
+      merged[code].dto5  += r.dto5||0;
+      merged[code].dttot += r.dttot||0;
+      merged[code].grand += r.grand||0;
+    });
+  });
+  return merged;
+}
+
+async function buildDashboard() {
+  await dashRefreshYearPicker();
+  const { filtered, mode, year } = await dashGetFilteredData();
+
+  // Build period label
+  const month   = document.getElementById('dfMonth')?.value;
+  const quarter = document.getElementById('dfQuarter')?.value;
+  const ward    = document.getElementById('dfWard')?.value || 'all';
+  let periodLabel = '';
+  if (mode==='month')   periodLabel = `${month} ${year}`;
+  else if (mode==='quarter') periodLabel = `${quarter} ${year}`;
+  else if (mode==='year')    periodLabel = `Full Year ${year}`;
+  else                       periodLabel = 'All Time';
+  if (ward !== 'all') periodLabel += ` · ${ward}`;
+
+  document.getElementById('dfiPeriod').textContent  = periodLabel;
+  document.getElementById('dfiRecords').textContent = `${filtered.length} record${filtered.length!==1?'s':''}`;
+  document.getElementById('vizSub').textContent     = `— ${periodLabel}`;
+
+  if (!filtered.length) {
+    ['kAdm','kDisch','kDeaths','kRefIn','kRefOut','kAbs'].forEach(id => {
+      document.getElementById(id).textContent = '—';
+    });
+    ['ad','adt','ov','t10d','t10dt'].forEach(id => dch(id));
+    const body = document.getElementById('brkBody');
+    if (body) body.innerHTML = `<tr><td colspan="9" style="text-align:center;color:#94a3b8;padding:40px;font-style:italic;">No data for this period — submit data from the Data Entry tab</td></tr>`;
+    const al = document.getElementById('topAdmList'), ml = document.getElementById('topMortList');
+    if (al) al.innerHTML = `<div style="padding:30px;text-align:center;color:#94a3b8;font-size:0.8rem;">No data for this period</div>`;
+    if (ml) ml.innerHTML = `<div style="padding:30px;text-align:center;color:#94a3b8;font-size:0.8rem;">No data for this period</div>`;
+    return;
+  }
+
+  const data = dashMergeRecords(filtered);
+
+  // Aggregate summary stats
+  const adm     = filtered.reduce((s,p)=>s+(p.totalAdm||0), 0);
+  const rIn     = filtered.reduce((s,p)=>s+(p.refFrom||0), 0);
+  const rOut    = filtered.reduce((s,p)=>s+(p.refTo||0), 0);
+  const abs     = filtered.reduce((s,p)=>s+(p.abscondees||0), 0);
+
+  const cats = ['Communicable','Gynaecological','NonCommunicable'];
+  const ct = {}; cats.forEach(c => ct[c]={du5:0,do5:0,dtu5:0,dto5:0,dttot:0});
+  Object.values(data).forEach(r => {
+    if (!ct[r.cat]) return;
+    ct[r.cat].du5+=r.du5; ct[r.cat].do5+=r.do5;
+    ct[r.cat].dtu5+=r.dtu5; ct[r.cat].dto5+=r.dto5; ct[r.cat].dttot+=r.dttot;
+  });
+  const totAdm    = Object.values(data).reduce((s,r)=>s+r.grand,0);
+  const totDeaths = Object.values(data).reduce((s,r)=>s+r.dttot,0);
+  const totDTU5   = cats.reduce((s,c)=>s+ct[c].dtu5,0);
+  const totDTO5   = cats.reduce((s,c)=>s+ct[c].dto5,0);
+  const totAdmU5  = cats.reduce((s,c)=>s+ct[c].du5,0);
+  const totAdmO5  = cats.reduce((s,c)=>s+ct[c].do5,0);
+
+  // KPIs
+  document.getElementById('kAdm').textContent    = adm||totAdm||'—';
+  document.getElementById('kDisch').textContent  = totAdm||'—';
+  document.getElementById('kDeaths').textContent = totDeaths||'—';
+  document.getElementById('kRefIn').textContent  = rIn||'—';
+  document.getElementById('kRefOut').textContent = rOut||'—';
+  document.getElementById('kAbs').textContent    = abs||'—';
+
+  // Age donut — admissions
+  dch('ad'); document.getElementById('bAgeDisch').textContent = `Total: ${totAdm}`;
+  CH['ad'] = new Chart(document.getElementById('cAgeDisch'),{
+    type:'doughnut',
+    data:{labels:['Under 5','5 and above'],datasets:[{data:[totAdmU5,totAdmO5],backgroundColor:['#10b981','#2979ff'],borderWidth:0,hoverOffset:8}]},
+    options:{responsive:true,cutout:'65%',plugins:{legend:LC,tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${ctx.raw} (${totAdm?Math.round(ctx.raw/totAdm*100):0}%)`}}}}
+  });
+
+  // Age donut — deaths
+  dch('adt'); document.getElementById('bAgeDeaths').textContent = `Total: ${totDeaths}`;
+  CH['adt'] = new Chart(document.getElementById('cAgeDeaths'),{
+    type:'doughnut',
+    data:{labels:['Under 5','5 and above'],datasets:[{data:[totDTU5,totDTO5],backgroundColor:['#f44336','#f59e0b'],borderWidth:0,hoverOffset:8}]},
+    options:{responsive:true,cutout:'65%',plugins:{legend:LC,tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${ctx.raw} (${totDeaths?Math.round(ctx.raw/totDeaths*100):0}%)`}}}}
+  });
+
+  // Monthly overview bar
+  dch('ov');
+  CH['ov'] = new Chart(document.getElementById('cOverview'),{
+    type:'bar',
+    data:{
+      labels:['Total Admissions','Disease Admissions','Referrals In','Referrals Out','Total Deaths','Abscondees'],
+      datasets:[{label:'Count',data:[adm||totAdm,totAdm,rIn,rOut,totDeaths,abs],
+        backgroundColor:['#2979ff','#f44336','#7c3aed','#f59e0b','#10b981','#06b6d4'],borderRadius:6,borderSkipped:false}]
+    },
+    options:{responsive:true,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.raw}`}}},
+      scales:{x:{grid:GC,ticks:{...TC,maxRotation:0}},y:{grid:GC,ticks:TC,beginAtZero:true}}}
+  });
+
+  // Top 10 by admissions
+  const top10D  = Object.values(data).filter(r=>r.grand>0).sort((a,b)=>b.grand-a.grand).slice(0,10);
+  const top10DT = Object.values(data).filter(r=>r.dttot>0).sort((a,b)=>b.dttot-a.dttot).slice(0,10);
+  const shorten = s => s.length>26 ? s.slice(0,24)+'…' : s;
+
+  dch('t10d'); document.getElementById('bTop10D').textContent = `${top10D.length} diseases`;
+  CH['t10d'] = new Chart(document.getElementById('cTop10D'),{
+    type:'bar',
+    data:{labels:top10D.map(r=>shorten(r.name)),datasets:[
+      {label:'Admissions <5',data:top10D.map(r=>r.du5+r.dtu5),backgroundColor:'#2979ff',borderRadius:3,borderSkipped:false},
+      {label:'Admissions ≥5',data:top10D.map(r=>r.do5+r.dto5),backgroundColor:'#06b6d4',borderRadius:3,borderSkipped:false}
+    ]},
+    options:{indexAxis:'y',responsive:true,plugins:{legend:LC,tooltip:{mode:'index'}},
+      scales:{x:{stacked:true,grid:GC,ticks:TC,beginAtZero:true},y:{stacked:true,grid:GC,ticks:{...TC,font:{family:"'IBM Plex Mono'",size:9}}}}}
+  });
+
+  dch('t10dt'); document.getElementById('bTop10DT').textContent = `${top10DT.length} diseases`;
+  CH['t10dt'] = new Chart(document.getElementById('cTop10DT'),{
+    type:'bar',
+    data:{labels:top10DT.map(r=>shorten(r.name)),datasets:[
+      {label:'Under 5',    data:top10DT.map(r=>r.dtu5),backgroundColor:'#f44336',borderRadius:3,borderSkipped:false},
+      {label:'5 and above',data:top10DT.map(r=>r.dto5),backgroundColor:'#f59e0b',borderRadius:3,borderSkipped:false}
+    ]},
+    options:{indexAxis:'y',responsive:true,plugins:{legend:LC,tooltip:{mode:'index'}},
+      scales:{x:{stacked:true,grid:GC,ticks:TC,beginAtZero:true},y:{stacked:true,grid:GC,ticks:{...TC,font:{family:"'IBM Plex Mono'",size:9}}}}}
+  });
+
+  // Ranked lists
+  const MEDALS   = ['🥇','🥈','🥉'];
+  const allAdm   = Object.values(data).filter(r=>r.grand>0).sort((a,b)=>b.grand-a.grand);
+  const allDths  = Object.values(data).filter(r=>r.dttot>0).sort((a,b)=>b.dttot-a.dttot);
+  const maxGrand = allAdm.length  ? allAdm[0].grand  : 1;
+  const maxDttot = allDths.length ? allDths[0].dttot : 1;
+
+  const admList = document.getElementById('topAdmList');
+  admList.innerHTML = '';
+  document.getElementById('bTopAdm').textContent = allAdm.length ? `${allAdm.length} disease${allAdm.length!==1?'s':''}` : '—';
+  if (!allAdm.length) {
+    admList.innerHTML = `<div style="padding:30px;text-align:center;color:#94a3b8;font-size:0.8rem;">No admissions data for this period</div>`;
+  } else {
+    allAdm.forEach((r,i) => {
+      const pct = Math.round((r.grand/maxGrand)*100);
+      const cfr = r.dttot ? ((r.dttot/r.grand)*100).toFixed(1) : null;
+      const item = document.createElement('div');
+      item.className = `ranked-item${i<3?' rank-'+(i+1):''}`;
+      item.innerHTML = `
+        <span class="rank-medal">${i<3?MEDALS[i]:''}</span>
+        <span class="rank-num">${i+1}</span>
+        <div class="rank-disease">
+          <div class="rank-disease-name">${r.name}</div>
+          <div class="rank-disease-sub">
+            <span class="age-u5">&lt;5: ${r.du5+r.dtu5}</span>
+            <span class="age-o5">≥5: ${r.do5+r.dto5}</span>
+            ${cfr!==null?`<span class="cfr">CFR: ${cfr}%</span>`:''}
+          </div>
+        </div>
+        <div class="rank-bar-wrap">
+          <div class="rank-bar-bg"><div class="rank-bar-fill" style="width:${pct}%;background:linear-gradient(90deg,#2979ff,#06b6d4)"></div></div>
+          <div class="rank-bar-pct">${pct}% of top</div>
+        </div>
+        <span class="rank-value admissions">${r.grand}</span>`;
+      admList.appendChild(item);
+    });
+  }
+
+  const mortList = document.getElementById('topMortList');
+  mortList.innerHTML = '';
+  document.getElementById('bTopMort').textContent = allDths.length ? `${allDths.length} disease${allDths.length!==1?'s':''}` : '—';
+  if (!allDths.length) {
+    mortList.innerHTML = `<div style="padding:30px;text-align:center;color:#94a3b8;font-size:0.8rem;">No mortality data for this period</div>`;
+  } else {
+    allDths.forEach((r,i) => {
+      const pct = Math.round((r.dttot/maxDttot)*100);
+      const cfr = r.grand ? ((r.dttot/r.grand)*100).toFixed(1) : '100.0';
+      const item = document.createElement('div');
+      item.className = `ranked-item${i<3?' rank-'+(i+1):''}`;
+      item.innerHTML = `
+        <span class="rank-medal">${i<3?MEDALS[i]:''}</span>
+        <span class="rank-num">${i+1}</span>
+        <div class="rank-disease">
+          <div class="rank-disease-name">${r.name}</div>
+          <div class="rank-disease-sub">
+            <span class="age-u5">&lt;5: ${r.dtu5}</span>
+            <span class="age-o5">≥5: ${r.dto5}</span>
+            <span class="cfr">CFR: ${cfr}%</span>
+          </div>
+        </div>
+        <div class="rank-bar-wrap">
+          <div class="rank-bar-bg"><div class="rank-bar-fill" style="width:${pct}%;background:linear-gradient(90deg,#f44336,#f59e0b)"></div></div>
+          <div class="rank-bar-pct">${pct}% of top</div>
+        </div>
+        <span class="rank-value deaths">${r.dttot}</span>`;
+      mortList.appendChild(item);
+    });
+  }
+
+  // Full breakdown table
+  const allRows = Object.values(data).filter(r=>r.grand>0).sort((a,b)=>b.grand-a.grand);
+  const maxG    = allRows.length ? allRows[0].grand : 1;
+  const brkBody = document.getElementById('brkBody');
+  brkBody.innerHTML = '';
+  if (!allRows.length) {
+    brkBody.innerHTML=`<tr><td colspan="9" style="text-align:center;color:#94a3b8;padding:30px;">No data for this period</td></tr>`;
+  } else {
+    allRows.forEach((r,i) => {
+      const pct = Math.round(r.grand/maxG*100);
+      const col = (CC[r.cat]||{u5:'#888'}).u5;
+      brkBody.innerHTML += `<tr>
+        <td class="rank-cell">${i+1}</td>
+        <td style="text-align:left;color:#1e293b">${r.name}</td>
+        <td style="color:#10b981;font-family:'IBM Plex Mono'">${r.du5}</td>
+        <td style="color:#2979ff;font-family:'IBM Plex Mono'">${r.do5}</td>
+        <td style="color:#334155;font-family:'IBM Plex Mono';font-weight:700">${r.dtot}</td>
+        <td style="color:#f44336;font-family:'IBM Plex Mono'">${r.dtu5}</td>
+        <td style="color:#f59e0b;font-family:'IBM Plex Mono'">${r.dto5}</td>
+        <td style="color:#ef4444;font-family:'IBM Plex Mono';font-weight:700">${r.dttot}</td>
+        <td class="bar-cell">
+          <div class="mini-bg"><div class="mini-fill" style="width:${pct}%;background:${col}"></div></div>
+          <span class="pct">${pct}%</span>
+        </td></tr>`;
+    });
+  }
+}
+// ─── Visualizer ─────────────────────────────────────────────────────────────
+let vzChart      = null;
+let vzInitDone   = false;
+let vzChartType  = 'column';
+
+const VZ_MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const VZ_WARDS  = [
+  {id:'Female Ward',   icon:'👩'},
+  {id:'Male Ward',     icon:'👨'},
+  {id:'Paediatric Ward',icon:'👶'},
+  {id:'Maternity Ward',icon:'🤰'},
+  {id:'Surgical Ward', icon:'🔪'},
+];
+
+const vzSel = {
+  diseases: new Set(),
+  months:   new Set(['December']),
+  years:    new Set(['2025']),
+  wards:    new Set(['Female Ward']),
+};
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+function vzInit() {
+  if (vzInitDone) { vzRefreshDiseaseList(''); return; }
+  vzInitDone = true;
+
+  // Chart type buttons
+  document.querySelectorAll('.ctype-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.ctype-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      vzChartType = btn.dataset.type;
+    });
+  });
+
+  // Month buttons
+  const mg = document.getElementById('vzMonthPicker');
+  VZ_MONTHS.forEach(m => {
+    const btn = document.createElement('button');
+    btn.className = 'period-btn' + (vzSel.months.has(m) ? ' selected' : '');
+    btn.textContent = m.slice(0,3);
+    btn.title = m;
+    btn.onclick = () => {
+      btn.classList.toggle('selected');
+      vzSel.months.has(m) ? vzSel.months.delete(m) : vzSel.months.add(m);
+      vzUpdateSideBadge('period', vzSel.months.size);
+    };
+    mg.appendChild(btn);
+  });
+
+  // Year buttons
+  const yg = document.getElementById('vzYearPicker');
+  [2022,2023,2024,2025,2026].forEach(y => {
+    const btn = document.createElement('button');
+    btn.className = 'year-btn' + (vzSel.years.has(String(y)) ? ' selected' : '');
+    btn.textContent = y;
+    btn.onclick = () => {
+      btn.classList.toggle('selected');
+      const ys = String(y);
+      vzSel.years.has(ys) ? vzSel.years.delete(ys) : vzSel.years.add(ys);
+    };
+    yg.appendChild(btn);
+  });
+
+  // Ward cards
+  const wg = document.getElementById('vzWardGrid');
+  VZ_WARDS.forEach(w => {
+    const card = document.createElement('div');
+    card.className = 'ward-card' + (vzSel.wards.has(w.id) ? ' selected' : '');
+    card.innerHTML = `<span class="ward-icon">${w.icon}</span><span class="ward-name">${w.id}</span>`;
+    card.onclick = () => {
+      card.classList.toggle('selected');
+      vzSel.wards.has(w.id) ? vzSel.wards.delete(w.id) : vzSel.wards.add(w.id);
+      vzUpdateSideBadge('ward', vzSel.wards.size);
+    };
+    wg.appendChild(card);
+  });
+
+  // Set initial badges
+  vzUpdateSideBadge('period', vzSel.months.size);
+  vzUpdateSideBadge('ward',   vzSel.wards.size);
+  vzRefreshDiseaseList('');
+  vzShowPanel('data');
+}
+
+function vzUpdateSideBadge(dim, count) {
+  const el = document.getElementById(`sbadge-${dim}`);
+  if (!el) return;
+  el.textContent = count;
+  el.classList.toggle('zero', count === 0);
+}
+
+// ── Panel switching ───────────────────────────────────────────────────────────
+const PANEL_META = {
+  data:    {icon:'🦠', label:'Data Elements'},
+  period:  {icon:'📅', label:'Period'},
+  ward:    {icon:'🏥', label:'Ward'},
+  age:     {icon:'👶', label:'Age Disaggregation'},
+  measure: {icon:'📐', label:'Measure Type'},
+};
+function vzShowPanel(panel) {
+  document.querySelectorAll('.vz-panel').forEach(p => p.style.display='none');
+  const el = document.getElementById(`panel-${panel}`);
+  if (el) el.style.display = 'block';
+  document.querySelectorAll('.vz-dim-btn').forEach(b => b.classList.remove('active-dim'));
+  const btn = document.getElementById(`sdim-${panel}`);
+  if (btn) btn.classList.add('active-dim');
+  const m = PANEL_META[panel] || {};
+  document.getElementById('vzConfigHdr').innerHTML =
+    `<span class="panel-icon">${m.icon||''}</span> ${m.label||''}`;
+}
+
+// ── Disease list ──────────────────────────────────────────────────────────────
+// ─ vzGetDBData: get merged disease data from DB matching visualizer selections ─
+async function vzGetDBData() {
+  const all = await dbGetAll();
+  let filtered = all;
+
+  // Filter by selected wards
+  if (vzSel.wards.size) {
+    // Map vzSel ward ids back to ward names
+    const wardNames = new Set([...vzSel.wards].map(id => {
+      const w = VZ_WARDS.find(v => v.id === id);
+      return w ? w.id : id;
+    }));
+    filtered = filtered.filter(p => wardNames.has(p.ward));
+  }
+  // Filter by selected months
+  if (vzSel.months.size) filtered = filtered.filter(p => vzSel.months.has(p.month));
+  // Filter by selected years
+  if (vzSel.years.size) filtered = filtered.filter(p => vzSel.years.has(String(p.year)));
+
+  return dashMergeRecords(filtered);
+}
+
+function vzRefreshDiseaseList(filter) {
+  const container = document.getElementById('vzDiseaseChecks');
+  container.innerHTML = '';
+  vzGetDBData().then(data => {
+    const q = filter.toLowerCase();
+    let curCat = null;
+
+    diseases.forEach(d => {
+      if (d.section) { curCat = d.section; return; }
+      if (q && !d.name.toLowerCase().includes(q) && !d.code.toLowerCase().includes(q)) return;
+      const row = data[d.code];
+      const hasData = row && row.grand > 0;
+
+      if (curCat !== null) {
+        const prev = container.querySelector(`[data-cat="${curCat}"]`);
+        if (!prev) {
+          const hdr = document.createElement('div');
+          hdr.className = 'check-group-hdr';
+          hdr.dataset.cat = curCat;
+          hdr.textContent = curCat;
+          container.appendChild(hdr);
+        }
+        curCat = null;
+      }
+      const item = document.createElement('div');
+      item.className = 'check-item' + (hasData ? ' has-data' : '');
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.id = `vzd_${d.code.replace(/[^a-z0-9]/gi,'_')}`;
+      cb.checked = vzSel.diseases.has(d.code);
+      cb.onchange = () => { cb.checked ? vzSel.diseases.add(d.code) : vzSel.diseases.delete(d.code); vzUpdateSideBadge('data', vzSel.diseases.size); };
+      const lbl = document.createElement('label');
+      lbl.htmlFor = cb.id;
+      lbl.textContent = `[${d.code}] ${d.name}`;
+      item.appendChild(cb); item.appendChild(lbl);
+      if (hasData) {
+        const badge = document.createElement('span');
+        badge.className = 'data-count';
+        badge.textContent = row.grand;
+        item.appendChild(badge);
+      }
+      container.appendChild(item);
+    });
+  });
+}
+
+function vzFilterDiseases(val) { vzRefreshDiseaseList(val); }
+
+function vzSelectAll() {
+  diseases.forEach(d => { if (!d.section) vzSel.diseases.add(d.code); });
+  vzRefreshDiseaseList(document.getElementById('vzSearchInput').value);
+  vzUpdateSideBadge('data', vzSel.diseases.size);
+}
+function vzSelectNone() {
+  vzSel.diseases.clear();
+  vzRefreshDiseaseList(document.getElementById('vzSearchInput').value);
+  vzUpdateSideBadge('data', 0);
+}
+async function vzSelectWithData() {
+  vzSel.diseases.clear();
+  const data = await vzGetDBData();
+  diseases.forEach(d => { if (!d.section && data[d.code] && data[d.code].grand > 0) vzSel.diseases.add(d.code); });
+  vzRefreshDiseaseList(document.getElementById('vzSearchInput').value);
+  vzUpdateSideBadge('data', vzSel.diseases.size);
+}
+
+// ── Build datasets from DB ───────────────────────────────────────────────────
+const VZ_PALETTE = ['#1a5276','#1e8449','#922b21','#b7950b','#6c3483','#0e6655','#1a5276cc','#117a65','#784212','#1f618d'];
+const VZ_PALETTE_LIGHT = ['#5dade2','#58d68d','#ec7063','#f4d03f','#a569bd','#45b39d','#85c1e9','#76d7c4','#f0b27a','#7fb3d3'];
+
+function vzBuildChartData(selD, data) {
+  const showU5  = document.getElementById('age-u5').checked;
+  const showO5  = document.getElementById('age-o5').checked;
+  const showDis = document.getElementById('meas-disch').checked;
+  const showDth = document.getElementById('meas-deaths').checked;
+  const labels  = selD.map(d => d.name.length > 28 ? d.name.slice(0,26)+'…' : d.name);
+  const sets    = [];
+
+  if (vzChartType==='pie' || vzChartType==='doughnut') {
+    const totals = selD.map(d => {
+      const r = data[d.code]||{};
+      let v=0;
+      if(showDis && showU5) v+=r.du5||0; if(showDis && showO5) v+=r.do5||0;
+      if(showDth && showU5) v+=r.dtu5||0; if(showDth && showO5) v+=r.dto5||0;
+      return v;
+    });
+    return { labels, datasets:[{ data:totals, backgroundColor:selD.map((_,i)=>VZ_PALETTE[i%VZ_PALETTE.length]), borderWidth:2, borderColor:'white', hoverOffset:10 }] };
+  }
+
+  const mk = (label,vals,color,lightColor) => ({
+    label, data:vals,
+    backgroundColor: vzChartType==='line' ? lightColor+'44' : color+'dd',
+    borderColor: color, borderWidth: vzChartType==='line'?2:1,
+    pointBackgroundColor: color, pointRadius: vzChartType==='line'?4:0,
+    fill: vzChartType==='area', tension: 0.35,
+    borderRadius: vzChartType==='column'||vzChartType==='bar'||vzChartType==='stacked' ? 4 : 0,
+    borderSkipped: false,
+  });
+
+  if(showDis && showU5) sets.push(mk('Admissions <5',  selD.map(d=>(data[d.code]||{}).du5||0),  VZ_PALETTE[0], VZ_PALETTE_LIGHT[0]));
+  if(showDis && showO5) sets.push(mk('Admissions ≥5',  selD.map(d=>(data[d.code]||{}).do5||0),  VZ_PALETTE[1], VZ_PALETTE_LIGHT[1]));
+  if(showDth && showU5) sets.push(mk('Deaths <5',       selD.map(d=>(data[d.code]||{}).dtu5||0), VZ_PALETTE[2], VZ_PALETTE_LIGHT[2]));
+  if(showDth && showO5) sets.push(mk('Deaths ≥5',       selD.map(d=>(data[d.code]||{}).dto5||0), VZ_PALETTE[3], VZ_PALETTE_LIGHT[3]));
+
+  return { labels, datasets: sets };
+}
+
+function vzBuildPivot(selD, data) {
+  const showU5  = document.getElementById('age-u5').checked;
+  const showO5  = document.getElementById('age-o5').checked;
+  const showDis = document.getElementById('meas-disch').checked;
+  const showDth = document.getElementById('meas-deaths').checked;
+
+  const cols = [];
+  if(showDis && showU5) cols.push({k:'du5',  label:'Adm. <5',    color:'#1a5276'});
+  if(showDis && showO5) cols.push({k:'do5',  label:'Adm. ≥5',    color:'#1e8449'});
+  if(showDis)            cols.push({k:'dtot', label:'Total Adm.', color:'#0e4d6a', bold:true});
+  if(showDth && showU5) cols.push({k:'dtu5', label:'Deaths <5',  color:'#922b21'});
+  if(showDth && showO5) cols.push({k:'dto5', label:'Deaths ≥5',  color:'#b7950b'});
+  if(showDth)            cols.push({k:'dttot',label:'Tot Deaths', color:'#6e1e1e', bold:true});
+  cols.push({k:'grand', label:'Grand Total', color:'#2c3e50', bold:true});
+
+  let h = `<div class="pivot-wrapper"><table class="pivot-table"><thead><tr>
+    <th class="row-head">No.</th><th class="row-head">Disease</th>`;
+  cols.forEach(c => h += `<th style="background:${c.color}">${c.label}</th>`);
+  h += '</tr></thead><tbody>';
+
+  const totals = {}; cols.forEach(c => totals[c.k]=0);
+  selD.forEach(d => {
+    const r = data[d.code]||{du5:0,do5:0,dtot:0,dtu5:0,dto5:0,dttot:0,grand:0};
+    h += `<tr><td class="row-label" style="color:#7a8fa0;min-width:40px">${d.code}</td><td class="row-label">${d.name}</td>`;
+    cols.forEach(c => { const v=r[c.k]||0; totals[c.k]+=v; h += `<td ${c.bold?'class="col-total"':''} ${v===0?'style="color:#c8d8e4"':''}>${v||'—'}</td>`; });
+    h += '</tr>';
+  });
+  h += '<tr>';
+  h += `<td colspan="2" class="row-label" style="background:#1a5276;color:white;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:0.65rem;letter-spacing:0.06em">TOTAL</td>`;
+  cols.forEach(c => h += `<td class="grand">${totals[c.k]||0}</td>`);
+  h += '</tr></tbody></table></div>';
+  return h;
+}
+
+function vzBuildStats(selD, data) {
+  let totalD=0, totalDth=0, totalU5=0, totalO5=0;
+  selD.forEach(d => {
+    const r = data[d.code]||{};
+    totalD   += r.dtot||0; totalDth += r.dttot||0;
+    totalU5  += (r.du5||0)+(r.dtu5||0); totalO5 += (r.do5||0)+(r.dto5||0);
+  });
+  const cfr = (totalD+totalDth) ? ((totalDth/(totalD+totalDth))*100).toFixed(1) : '—';
+  return `<div class="vz-stat-row">
+    <div class="vz-stat-mini"><div class="sm-val">${totalD}</div><div class="sm-label">Total Admissions</div></div>
+    <div class="vz-stat-mini"><div class="sm-val" style="color:#922b21">${totalDth}</div><div class="sm-label">Total Deaths</div></div>
+    <div class="vz-stat-mini"><div class="sm-val" style="color:#1e8449">${totalU5}</div><div class="sm-label">Under 5 Total</div></div>
+    <div class="vz-stat-mini"><div class="sm-val" style="color:#1a5276">${totalO5}</div><div class="sm-label">5 and Above Total</div></div>
+    <div class="vz-stat-mini"><div class="sm-val" style="color:#b7950b">${cfr}%</div><div class="sm-label">Case Fatality Rate</div></div>
+    <div class="vz-stat-mini"><div class="sm-val">${selD.length}</div><div class="sm-label">Diseases Shown</div></div>
+  </div>`;
+}
+
+// ── Main update function ───────────────────────────────────────────────────────
+async function vzUpdate() {
+  const selD    = diseases.filter(d => !d.section && vzSel.diseases.has(d.code));
+  const content = document.getElementById('vzCanvasContent');
+
+  if (!selD.length) {
+    content.innerHTML = `<div class="vz-empty">
+      <div class="empty-icon">⚠️</div>
+      <h3>No diseases selected</h3>
+      <p>Open the <strong>Data Elements</strong> panel and tick at least one disease, then click <strong>▶ Update</strong>.</p>
+    </div>`;
+    return;
+  }
+
+  const data   = await vzGetDBData();
+  const ward   = [...vzSel.wards].join(' · ') || 'All Wards';
+  const period = [...vzSel.months].join(', ') + ' ' + [...vzSel.years].join('/');
+  const label  = `${ward}  ·  ${period}`;
+  document.getElementById('vzCanvasTitle').textContent = label;
+  document.getElementById('vzCanvasMeta').textContent  = `${selD.length} disease${selD.length!==1?'s':''} selected`;
+
+  if (vzChart) { vzChart.destroy(); vzChart=null; }
+  content.innerHTML = '';
+
+  if (vzChartType === 'pivot') {
+    const card = document.createElement('div');
+    card.className = 'vz-output-card';
+    card.innerHTML = `<div class="vz-output-header">
+      <span class="chart-icon">⊞</span><h3>Pivot Table</h3><span class="vz-meta">${label}</span>
+    </div>
+    <div class="vz-output-body">${vzBuildPivot(selD,data)}${vzBuildStats(selD,data)}</div>`;
+    content.appendChild(card);
+    return;
+  }
+
+  const typeLabels = {column:'Column Chart',bar:'Horizontal Bar',line:'Line Chart',area:'Area Chart',pie:'Pie Chart',doughnut:'Doughnut Chart',radar:'Radar Chart',stacked:'Stacked Bar'};
+  const typeIcons  = {column:'📊',bar:'↔',line:'📈',area:'⛰',pie:'🥧',doughnut:'🍩',radar:'🕸',stacked:'▦'};
+
+  const chartCard = document.createElement('div');
+  chartCard.className = 'vz-output-card';
+  chartCard.innerHTML = `<div class="vz-output-header">
+    <span class="chart-icon">${typeIcons[vzChartType]||'📊'}</span>
+    <h3>${typeLabels[vzChartType]||''}</h3>
+    <span class="vz-meta">${label}</span>
+  </div>
+  <div class="vz-output-body">
+    <canvas id="vzMainCanvas"></canvas>
+    ${vzBuildStats(selD,data)}
+  </div>`;
+  content.appendChild(chartCard);
+
+  const pivCard = document.createElement('div');
+  pivCard.className = 'vz-output-card';
+  pivCard.innerHTML = `<div class="vz-output-header">
+    <span class="chart-icon">⊞</span><h3>Data Table</h3><span class="vz-meta">${label}</span>
+  </div>
+  <div class="vz-output-body">${vzBuildPivot(selD,data)}</div>`;
+  content.appendChild(pivCard);
+
+  const ctx   = document.getElementById('vzMainCanvas').getContext('2d');
+  const {labels, datasets} = vzBuildChartData(selD, data);
+  const isHoriz   = vzChartType==='bar';
+  const isStacked = vzChartType==='stacked';
+  const isArea    = vzChartType==='area';
+  const isRadar   = vzChartType==='radar';
+  const isPolar   = vzChartType==='pie'||vzChartType==='doughnut';
+  const chartJsT  = isStacked?'bar': isArea?'line': vzChartType==='column'?'bar': vzChartType;
+
+  const scaleOpts = isPolar||isRadar ? {} : {
+    x: { stacked:isStacked, grid:{color:'rgba(0,0,0,0.05)'}, ticks:{color:'#4a6070',font:{size:10}} },
+    y: { stacked:isStacked, beginAtZero:true, grid:{color:'rgba(0,0,0,0.05)'}, ticks:{color:'#4a6070',font:{size:10}} }
+  };
+
+  vzChart = new Chart(ctx, {
+    type: chartJsT, data: { labels, datasets },
+    options: {
+      responsive:true, maintainAspectRatio:true,
+      indexAxis: isHoriz ? 'y' : 'x',
+      plugins: {
+        legend: { position:'top', labels:{color:'#2c3e50',font:{size:11},padding:14,usePointStyle:true} },
+        tooltip: { mode: isPolar?'point':'index', intersect:false,
+          callbacks: { label: ctx => ` ${ctx.dataset.label||ctx.label}: ${ctx.raw||0}` } },
+      },
+      scales: scaleOpts,
+      animation: { duration: 500, easing:'easeInOutQuart' },
+    }
+  });
+}
+// ── Download ──────────────────────────────────────────────────────────────────
+async function vzDownloadCSV() {
+  const selD = diseases.filter(d => !d.section && vzSel.diseases.has(d.code));
+  if (!selD.length) { alert('No diseases selected'); return; }
+  const data = await vzGetDBData();
+  let csv = 'Code,Disease,Category,Adm_U5,Adm_O5,Total_Adm,Deaths_U5,Deaths_O5,Total_Deaths,Grand_Total\n';
+  selD.forEach(d => {
+    const r = data[d.code]||{};
+    csv += `"${d.code}","${d.name}","${d.cat}",${r.du5||0},${r.do5||0},${r.dtot||0},${r.dtu5||0},${r.dto5||0},${r.dttot||0},${r.grand||0}\n`;
+  });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download = 'ward_visualizer_export.csv';
+  a.click();
+}
+
+function vzDownloadPNG() {
+  const canvas = document.getElementById('vzMainCanvas');
+  if (!canvas) { alert('No chart to download. Click ▶ Update first.'); return; }
+  const a = document.createElement('a');
+  a.href = canvas.toDataURL('image/png');
+  a.download = 'ward_chart.png';
+  a.click();
+}
+
+// ─── Photo Extraction ─────────────────────────────────────────────────────────
+let extractedData = null;
+let photoBase64   = null;
+
+function openPhotoModal() {
+  document.getElementById('photoModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closePhotoModal() {
+  document.getElementById('photoModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+// Close on overlay click
+document.getElementById('photoModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('photoModal')) closePhotoModal();
+});
+
+// Drag & drop
+const dz = document.getElementById('dropZone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+dz.addEventListener('drop', e => {
+  e.preventDefault(); dz.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) loadPhotoFile(file);
+});
+
+function handlePhotoSelect(e) {
+  const file = e.target.files[0];
+  if (file) loadPhotoFile(file);
+}
+
+function loadPhotoFile(file) {
+  if (file.size > 10 * 1024 * 1024) { showError('Image too large. Please use an image under 10MB.'); return; }
+  const reader = new FileReader();
+  reader.onload = ev => {
+    photoBase64 = ev.target.result.split(',')[1];
+    document.getElementById('previewImg').src = ev.target.result;
+    document.getElementById('imgPreview').style.display = 'block';
+    document.getElementById('extractBtn').style.display  = 'flex';
+    document.getElementById('extractResults').style.display = 'none';
+    document.getElementById('errorMsg').style.display = 'none';
+    document.getElementById('extractProgress').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+function removePhoto() {
+  photoBase64 = null;
+  document.getElementById('previewImg').src = '';
+  document.getElementById('imgPreview').style.display   = 'none';
+  document.getElementById('extractBtn').style.display   = 'none';
+  document.getElementById('extractResults').style.display = 'none';
+  document.getElementById('errorMsg').style.display     = 'none';
+  document.getElementById('extractProgress').style.display = 'none';
+  document.getElementById('photoInput').value = '';
+}
+
+function setProgress(pct, text) {
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressText').textContent = text;
+}
+
+function showError(msg) {
+  const el = document.getElementById('errorMsg');
+  el.textContent = '⚠️ ' + msg;
+  el.style.display = 'block';
+  document.getElementById('extractProgress').style.display = 'none';
+  document.getElementById('extractBtn').style.display = 'flex';
+  document.getElementById('extractBtn').classList.remove('loading');
+  document.getElementById('extractBtn').textContent = '↺ Try Again';
+}
+
+async function extractFromPhoto() {
+  if (!photoBase64) return;
+  const btn = document.getElementById('extractBtn');
+  btn.classList.add('loading');
+  btn.innerHTML = '⏳ Analysing with Claude AI...';
+  document.getElementById('extractProgress').style.display = 'block';
+  document.getElementById('errorMsg').style.display = 'none';
+  document.getElementById('extractResults').style.display = 'none';
+  setProgress(10, 'Sending image to Claude AI...');
+
+  const diseaseList = diseases.filter(d => !d.section)
+    .map(d => `${d.code}: ${d.name}`).join('\n');
+
+  const prompt = `You are a medical data extraction assistant. Carefully read this ward worksheet image from Machinga District Hospital.
+
+Extract ALL visible numbers from the disease table. For each disease row you can see, extract:
+- Discharge Under 5 (du5)
+- Discharge Over 5 (do5)  
+- Death Under 5 (dtu5)
+- Death Over 5 (dto5)
+
+Also extract from the summary section:
+- Total Admissions
+- Total In-patient Days
+- Referrals from Health Centres
+- Referrals to Central Hospitals
+- Total Abscondees
+- Ward (Female/Male/Paediatric/Maternity/Surgical)
+- Month and Year if visible
+- Compiled By name if visible
+
+Here is the list of diseases and their codes in the form:
+${diseaseList}
+
+Match what you see in the image to the closest disease code from the list above.
+
+Return ONLY a valid JSON object in this exact format (no markdown, no explanation):
+{
+  "ward": "Female Ward",
+  "month": "December",
+  "year": "2025",
+  "totalAdmissions": 0,
+  "inpatientDays": 0,
+  "referralsFrom": 0,
+  "referralsTo": 0,
+  "abscondees": 0,
+  "diseases": {
+    "1":  {"du5": 0, "do5": 0, "dtu5": 0, "dto5": 0},
+    "9":  {"du5": 2, "do5": 5, "dtu5": 0, "dto5": 1}
+  }
+}
+
+Only include disease codes where you can see non-zero values. Use code keys exactly as listed (e.g. "14a", "32b", "55b"). If a cell is blank or zero, omit that disease from the diseases object.`;
+
+  try {
+    setProgress(30, 'Claude is reading the worksheet...');
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 2000,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: photoBase64 } },
+            { type: 'text', text: prompt }
+          ]
+        }]
+      })
+    });
+
+    setProgress(70, 'Processing extracted data...');
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.error?.message || `API error ${response.status}`);
+    }
+
+    const result = await response.json();
+    const rawText = result.content.map(b => b.text || '').join('').trim();
+
+    // Strip any markdown fences
+    const cleaned = rawText.replace(/```json|```/g, '').trim();
+    let parsed;
+    try { parsed = JSON.parse(cleaned); }
+    catch(e) { throw new Error('Could not parse AI response. The image may be unclear or too small. Try a clearer, well-lit photo.'); }
+
+    setProgress(95, 'Building preview...');
+    extractedData = parsed;
+    renderExtractionPreview(parsed);
+    setProgress(100, 'Done!');
+
+    setTimeout(() => {
+      document.getElementById('extractProgress').style.display = 'none';
+      document.getElementById('extractResults').style.display  = 'block';
+    }, 400);
+
+    btn.innerHTML = '✨ Extract Data with AI';
+    btn.classList.remove('loading');
+
+  } catch(err) {
+    showError(err.message || 'Extraction failed. Please try again.');
+    console.error(err);
+  }
+}
+
+function renderExtractionPreview(data) {
+  // Summary
+  const summaryEl = document.getElementById('resultSummary');
+  const lines = [];
+  if (data.ward)            lines.push(`Ward: ${data.ward}`);
+  if (data.month || data.year) lines.push(`Period: ${data.month||''} ${data.year||''}`);
+  if (data.totalAdmissions) lines.push(`Total Admissions: ${data.totalAdmissions}`);
+  if (data.inpatientDays)   lines.push(`In-patient Days: ${data.inpatientDays}`);
+  if (data.referralsFrom)   lines.push(`Referrals In: ${data.referralsFrom}`);
+  if (data.referralsTo)     lines.push(`Referrals Out: ${data.referralsTo}`);
+  if (data.abscondees)      lines.push(`Abscondees: ${data.abscondees}`);
+  const diseaseCount = Object.keys(data.diseases||{}).length;
+  lines.push(`Disease rows found: ${diseaseCount}`);
+  summaryEl.innerHTML = lines.join('<br>');
+
+  // Disease rows
+  const rowsEl = document.getElementById('resultRows');
+  // Clear previous disease rows (keep header)
+  const existing = rowsEl.querySelectorAll('.result-row:not(.header)');
+  existing.forEach(r => r.remove());
+
+  const dMap = {};
+  diseases.forEach(d => { if (!d.section) dMap[d.code] = d.name; });
+
+  const dises = data.diseases || {};
+  if (Object.keys(dises).length === 0) {
+    rowsEl.innerHTML += `<div style="padding:18px;text-align:center;color:#607090;font-size:0.78rem;font-family:'IBM Plex Mono'">No disease data found — the image may be hard to read</div>`;
+    return;
+  }
+
+  Object.entries(dises).forEach(([code, vals]) => {
+    const name = dMap[code] || `Disease ${code}`;
+    const du5  = vals.du5  || 0;
+    const do5  = vals.do5  || 0;
+    const dtu5 = vals.dtu5 || 0;
+    const dto5 = vals.dto5 || 0;
+    const row = document.createElement('div');
+    row.className = 'result-row';
+    row.innerHTML = `
+      <span class="code-c">${code}</span>
+      <span class="name-c">${name}</span>
+      <span class="num-c green">${du5||'—'}</span>
+      <span class="num-c green">${do5||'—'}</span>
+      <span class="num-c red">${dtu5||'—'}</span>
+      <span class="num-c red">${dto5||'—'}</span>`;
+    rowsEl.appendChild(row);
+  });
+}
+
+function applyExtractedData() {
+  if (!extractedData) return;
+  const d = extractedData;
+
+  // Ward info
+  if (d.ward) {
+    const sel = document.getElementById('ward');
+    const opt = [...sel.options].find(o => o.text.toLowerCase().includes(d.ward.toLowerCase().replace(' ward','')));
+    if (opt) sel.value = opt.value;
+  }
+  if (d.month) {
+    const sel = document.getElementById('month');
+    const opt = [...sel.options].find(o => o.text.toLowerCase() === d.month.toLowerCase());
+    if (opt) sel.value = opt.value;
+  }
+  if (d.year) document.getElementById('year').value = d.year;
+
+  // Summary fields
+  if (d.totalAdmissions) document.getElementById('totalAdmissions').value = d.totalAdmissions;
+  if (d.inpatientDays)   document.getElementById('inpatientDays').value   = d.inpatientDays;
+  if (d.referralsFrom)   document.getElementById('referralsFrom').value   = d.referralsFrom;
+  if (d.referralsTo)     document.getElementById('referralsTo').value     = d.referralsTo;
+  if (d.abscondees)      document.getElementById('abscondees').value      = d.abscondees;
+
+  // Disease data
+  const dises = d.diseases || {};
+  Object.entries(dises).forEach(([code, vals]) => {
+    const id = 'r_' + code.replace(/[^a-z0-9]/gi, '_');
+    const cols = { du5: vals.du5, do5: vals.do5, dtu5: vals.dtu5, dto5: vals.dto5 };
+    Object.entries(cols).forEach(([col, val]) => {
+      if (!val) return;
+      const el = document.querySelector(`[data-row="${id}"][data-col="${col}"]`);
+      if (el) { el.value = val; calcRow(id); }
+    });
+  });
+
+  updateSub();
+  closePhotoModal();
+
+  // Flash success
+  const banner = document.createElement('div');
+  banner.style.cssText = 'position:fixed;top:70px;left:50%;transform:translateX(-50%);background:#27ae60;color:white;padding:12px 24px;border-radius:6px;font-family:"IBM Plex Mono",monospace;font-size:0.78rem;z-index:2000;letter-spacing:0.06em;box-shadow:0 4px 20px rgba(0,0,0,0.3)';
+  banner.textContent = `✅ Data applied — ${Object.keys(dises).length} disease rows populated`;
+  document.body.appendChild(banner);
+  setTimeout(() => banner.remove(), 3500);
+}
+</script>
+
+<script>
+// ══════════════════════════════════════════════════════
+// LOGIN SYSTEM
+// ══════════════════════════════════════════════════════
+
+const ADMIN_CODE = 'MDH2025'; // Used internally for admin operations
+
+// Default users stored in memory (in real app would be server-side)
+let appUsers = [
+  { username:'admin',    password:'admin123', name:'System Admin',    role:'Admin',        ward:'All Wards' },
+  { username:'data1',    password:'data123',  name:'Data Officer 1',  role:'Data Officer', ward:'Female Ward' },
+  { username:'viewer1',  password:'view123',  name:'Viewer User',     role:'Viewer',       ward:'All Wards' },
+];
+
+let currentUser = null;
+
+// ── Sign In ───────────────────────────────────────────
+function doSignIn() {
+  const username = document.getElementById('signinUser').value.trim();
+  const password = document.getElementById('signinPass').value;
+  const errEl    = document.getElementById('signinError');
+
+  if (!username || !password) {
+    showLoginError(errEl, '⚠ Please enter username and password.'); return;
+  }
+
+  const user = appUsers.find(u => u.username === username && u.password === password);
+  if (!user) {
+    showLoginError(errEl, '❌ Invalid username or password. Please try again.'); return;
+  }
+
+  errEl.classList.remove('show');
+  loginSuccess(user);
+}
+
+// ── Login success ─────────────────────────────────────
+function loginSuccess(user) {
+  currentUser = user;
+
+  // Hide overlay
+  document.getElementById('loginOverlay').classList.add('hidden');
+
+  // Update header user pill
+  const initials = user.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  document.getElementById('userAvatar').textContent   = initials;
+  document.getElementById('userName').textContent     = user.name.split(' ')[0];
+  document.getElementById('userRoleBadge').textContent = user.role;
+  document.getElementById('ddName').textContent       = user.name;
+  document.getElementById('ddRole').textContent       = user.role;
+  document.getElementById('ddWard').textContent       = '🏥 ' + user.ward;
+  document.getElementById('userPill').style.display   = 'flex';
+
+  // Show admin item if admin
+  document.getElementById('ddAdminItem').style.display = user.role==='Admin' ? 'flex' : 'none';
+
+  // Apply role permissions
+  applyPermissions(user.role);
+
+  // Pre-select ward in forms if assigned
+  if (user.ward !== 'All Wards') {
+    const wardSel = document.getElementById('ward');
+    const opt = [...wardSel.options].find(o => o.text === user.ward);
+    if (opt) wardSel.value = opt.value;
+    updateSub();
+  }
+
+  showWelcomeBanner(user);
+}
+
+// ── Permissions ───────────────────────────────────────
+function applyPermissions(role) {
+  const isViewer = role === 'Viewer';
+  // Disable data entry for viewers
+  document.querySelectorAll('#tableBody input, #entryPage input[type="number"]:not(#deathsAuto), #entryPage select').forEach(el => {
+    el.disabled = isViewer;
+    if (isViewer) el.style.opacity = '0.6';
+  });
+  // Hide clear button for viewers
+  if (isViewer) document.getElementById('clearBtn').style.display = 'none';
+  // Hide photo extraction for viewers
+  document.querySelectorAll('.btn-camera').forEach(b => b.style.display = isViewer ? 'none' : '');
+}
+
+// ── Sign Out ──────────────────────────────────────────
+function doSignOut() {
+  if (!confirm('Sign out of Ward Worksheet?')) return;
+  currentUser = null;
+  document.getElementById('userDropdown').classList.remove('open');
+  document.getElementById('userPill').style.display = 'none';
+  // Re-enable all fields
+  document.querySelectorAll('#tableBody input, #entryPage input, #entryPage select').forEach(el => {
+    el.disabled = false; el.style.opacity = '';
+  });
+  document.getElementById('clearBtn').style.display = '';
+  document.querySelectorAll('.btn-camera').forEach(b => b.style.display = '');
+  // Switch back to entry tab
+  ['entryPage','vizPage','explorerPage','auditPage'].forEach((id,i) => {
+    document.querySelectorAll('.tab-btn')[i].classList.toggle('active', i===0);
+    document.getElementById(id).classList.toggle('active', i===0);
+  });
+  dashInitDone = false;
+  // Clear login fields and show overlay
+  document.getElementById('signinUser').value = '';
+  document.getElementById('signinPass').value = '';
+  document.getElementById('signinError').textContent = '';
+  document.getElementById('signinError').classList.remove('show');
+  // Show login overlay — remove hidden class; CSS display:flex handles the rest
+  document.getElementById('loginOverlay').classList.remove('hidden');
+}
+
+// ── User dropdown ─────────────────────────────────────
+function toggleUserDropdown(e) {
+  if (e) e.stopPropagation();
+  document.getElementById('userDropdown').classList.toggle('open');
+}
+document.addEventListener('click', () => {
+  document.getElementById('userDropdown')?.classList.remove('open');
+});
+document.getElementById('userPill')?.addEventListener('click', e => e.stopPropagation());
+
+// ── Admin panel ───────────────────────────────────────
+function openAdmin() {
+  document.getElementById('userDropdown').classList.remove('open');
+  renderAdminTable();
+  document.getElementById('adminPanel').classList.add('open');
+}
+function closeAdmin() {
+  document.getElementById('adminPanel').classList.remove('open');
+}
+document.getElementById('adminPanel').addEventListener('click', e => {
+  if (e.target === document.getElementById('adminPanel')) closeAdmin();
+});
+
+function renderAdminTable() {
+  const tbody = document.getElementById('adminUserTable');
+  tbody.innerHTML = '';
+  appUsers.forEach((u,i) => {
+    const roleClass = u.role.toLowerCase().replace(' ','');
+    tbody.innerHTML += `<tr>
+      <td>${u.name}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;color:#aaa">${u.username}</td>
+      <td><span class="role-badge ${roleClass}">${u.role}</span></td>
+      <td style="color:#888;font-size:0.76rem">${u.ward}</td>
+      <td>${u.username==='admin'?'':'<button class="del-btn" onclick="adminDeleteUser('+i+')">✕</button>'}</td>
+    </tr>`;
+  });
+}
+
+function adminDeleteUser(idx) {
+  if (appUsers[idx].username === currentUser?.username) { alert('Cannot delete yourself.'); return; }
+  if (!confirm(`Delete user "${appUsers[idx].name}"?`)) return;
+  appUsers.splice(idx,1);
+  renderAdminTable();
+}
+
+function adminAddUser() {
+  const name = document.getElementById('addName').value.trim();
+  const user = document.getElementById('addUser').value.trim();
+  const pass = document.getElementById('addPass').value;
+  const ward = document.getElementById('addWard').value;
+  const role = document.getElementById('addRole').value;
+  if (!name||!user||!pass) { alert('Please fill in Name, Username and Password.'); return; }
+  if (appUsers.find(u=>u.username===user)) { alert('Username already exists.'); return; }
+  appUsers.push({ username:user, password:pass, name, role, ward });
+  document.getElementById('addName').value = '';
+  document.getElementById('addUser').value = '';
+  document.getElementById('addPass').value = '';
+  renderAdminTable();
+}
+
+// ── Helpers ───────────────────────────────────────────
+function showLoginError(el, msg) {
+  el.textContent = msg;
+  el.classList.remove('show');
+  void el.offsetWidth; // trigger reflow for re-animation
+  el.classList.add('show');
+}
+
+function showWelcomeBanner(user) {
+  const b = document.createElement('div');
+  b.style.cssText = `position:fixed;top:70px;left:50%;transform:translateX(-50%);
+    background:linear-gradient(135deg,#1a3a5c,#1a5c3a);color:white;
+    padding:12px 28px;border-radius:8px;font-family:'IBM Plex Mono',monospace;
+    font-size:0.78rem;z-index:2000;letter-spacing:0.05em;
+    box-shadow:0 6px 24px rgba(0,0,0,0.35);white-space:nowrap;`;
+  b.textContent = `✅ Welcome, ${user.name} · ${user.role} · ${user.ward}`;
+  document.body.appendChild(b);
+  setTimeout(() => b.remove(), 3500);
+}
+
+// ── Boot: show login on load ──────────────────────────
+// (overlay is shown by default via HTML; nothing extra needed)
+
+// ══════════════════════════════════════════════════════
+// DEATH AUDIT — IndexedDB backed
+// ══════════════════════════════════════════════════════
+let auditCurrent = null; // key of open case (af-fileno)
+
+// ── DB helpers for audit store ────────────────────────
+function auditDbGetAll() {
+  return dbOpen().then(db => new Promise((res, rej) => {
+    const req = db.transaction('auditCases','readonly').objectStore('auditCases').getAll();
+    req.onsuccess = e => res(e.target.result);
+    req.onerror   = e => rej(e.target.error);
+  }));
+}
+function auditDbPut(c) {
+  return dbOpen().then(db => new Promise((res, rej) => {
+    c.fileKey = c['af-fileno']; // fileKey is the IDB keyPath (af-fileno contains a hyphen, invalid as keyPath)
+    const tx = db.transaction('auditCases','readwrite');
+    tx.objectStore('auditCases').put(c);
+    tx.oncomplete = res; tx.onerror = e => rej(e.target.error);
+  }));
+}
+function auditDbDelete(key) {
+  return dbOpen().then(db => new Promise((res, rej) => {
+    const tx = db.transaction('auditCases','readwrite');
+    tx.objectStore('auditCases').delete(key);
+    tx.oncomplete = res; tx.onerror = e => rej(e.target.error);
+  }));
+}
+
+
+
+// ── Init ──────────────────────────────────────────────
+async function auditInit() {
+  await auditRenderList();
+  if (auditCurrent === null) auditClearForm();
+}
+
+// ── Case list ─────────────────────────────────────────
+async function auditRenderList() {
+  const cases = await auditDbGetAll();
+  cases.sort((a,b) => (b.savedAt||'').localeCompare(a.savedAt||''));
+
+  const body  = document.getElementById('caseListBody');
+  const noMsg = document.getElementById('noCasesMsg');
+  const count = document.getElementById('auditCount');
+  count.textContent = `${cases.length} case${cases.length!==1?'s':''}`;
+
+  if (!cases.length) {
+    body.innerHTML = '';
+    body.appendChild(noMsg);
+    noMsg.style.display = '';
+    return;
+  }
+  noMsg.style.display = 'none';
+  body.innerHTML = '';
+  cases.forEach(c => {
+    const div = document.createElement('div');
+    const isActive = c['af-fileno'] === auditCurrent;
+    div.className = 'case-item' + (isActive ? ' active-case' : '');
+    const avd = c['af-avoidable'];
+    let badge = '';
+    if (avd === 'Yes')     badge = '<span class="ci-badge avoidable">Avoidable</span>';
+    else if (avd === 'No') badge = '<span class="ci-badge not-avoidable">Not Avoidable</span>';
+    else                   badge = '<span class="ci-badge draft">Draft</span>';
+    const initials = (c['af-name']||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)||'?';
+    const dod = c['af-deathdate']
+      ? new Date(c['af-deathdate']).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})
+      : 'No death date';
+    div.innerHTML = `
+      <div class="case-avatar deceased">${initials}</div>
+      <div class="ci-info">
+        <div class="ci-name">${c['af-name'] || 'Unnamed patient'}</div>
+        <div class="ci-meta">${dod} · File: ${c['af-fileno']||'—'}</div>
+      </div>
+      ${badge}`;
+    div.onclick = () => auditOpenCase(c['af-fileno']);
+    body.appendChild(div);
+  });
+}
+
+// ── Open case ─────────────────────────────────────────
+async function auditOpenCase(key) {
+  auditCurrent = key;
+  const cases = await auditDbGetAll();
+  const c = cases.find(x => x['af-fileno'] === key);
+  if (!c) return;
+  await auditRenderList();
+
+  const simpleFields = [
+    'af-district','af-fileno','af-name','af-address','af-dob','af-weight',
+    'af-admdate','af-admtime','af-deathdate','af-deathtime',
+    'af-etname','af-ettime',
+    'af-reffac','af-refdate','af-reftime','af-refdiag','af-refreason','af-preref','af-transport',
+    'af-malspec','af-mother','af-father','af-caregiver','af-feeding',
+    'af-hiv','af-hivstage','af-arv','af-cpt','af-art',
+    'af-cod-code-a','af-cod-a','af-cod-code-b','af-cod-b',
+    'af-cod-code-c','af-cod-c','af-cod-code-d','af-cod-d',
+    'af-other1-code','af-other1','af-other2-code','af-other2','af-other3-code','af-other3',
+    'af-summary-child','af-summary-hpc','af-summary-bg','af-summary-exam',
+    'af-ex-weight','af-ex-height','af-ex-muac','af-reftype'
+  ];
+  simpleFields.forEach(id => { const el=document.getElementById(id); if(el) el.value=c[id]||''; });
+  document.getElementById('afFileNo').textContent = c['af-fileno'] || '—';
+
+  ['af-gender','af-readmit','af-when','af-doa','af-file','af-ccp','af-incomplete',
+   'af-inadequate','af-recok','af-triage','af-referred','af-nutrition','af-avoidable'].forEach(name => {
+    document.querySelectorAll(`[name="${name}"]`).forEach(r => r.checked = r.value === c[name]);
+  });
+  document.getElementById('referralDetails').style.display = c['af-referred']==='Y' ? 'block' : 'none';
+  setVerdict(c['af-avoidable']==='Yes' ? 'avoidable' : c['af-avoidable']==='No' ? 'not-avoidable' : c['af-avoidable']==='Not sure' ? 'unsure' : '');
+
+  const mfb = document.getElementById('modFactorsTbody');
+  mfb.innerHTML = '';
+  (c.modFactors||[]).forEach(row => {
+    mfb.innerHTML += `<tr>
+      <td><input type="text" value="${row.code||''}" placeholder="Code"></td>
+      <td><select><option${row.loc==='Emergency/Admission/Ward'?' selected':''}>Emergency/Admission/Ward</option><option${row.loc!=='Emergency/Admission/Ward'?' selected':''}>Referring Facility &amp; Transit</option></select></td>
+      <td><input type="text" value="${row.comment||''}" placeholder="Comments"></td>
+      <td><button class="del-btn" onclick="this.closest('tr').remove()">✕</button></td>
+    </tr>`;
+  });
+  if (!mfb.innerHTML) auditAddModFactor();
+
+  const sb = document.getElementById('solutionsTbody');
+  sb.innerHTML = '';
+  (c.solutions||[]).forEach(row => {
+    sb.innerHTML += `<tr>
+      <td><input type="text" value="${row.factor||''}" placeholder="Describe factor"></td>
+      <td><input type="text" value="${row.solution||''}" placeholder="Proposed solution"></td>
+      <td><input type="text" value="${row.whom||''}" placeholder="Responsible person"></td>
+      <td><input type="date" value="${row.when||''}"></td>
+      <td><button class="del-btn" onclick="this.closest('tr').remove()">✕</button></td>
+    </tr>`;
+  });
+  if (!sb.innerHTML) auditAddSolution();
+
+  document.getElementById('auditSaveStatus').textContent = '';
+}
+
+// ── New case ──────────────────────────────────────────
+async function auditNewCase() {
+  auditCurrent = null;
+  auditClearForm();
+  const cases = await auditDbGetAll();
+  const fileNo = 'MDH-' + String(cases.length + 1).padStart(4,'0');
+  document.getElementById('af-fileno').value = fileNo;
+  document.getElementById('afFileNo').textContent = fileNo;
+}
+
+function auditClearForm() {
+  document.querySelectorAll('.afc-body input, .afc-body select, .afc-body textarea').forEach(el => {
+    if (el.type === 'radio' || el.type === 'checkbox') el.checked = false;
+    else el.value = '';
+  });
+  document.getElementById('afFileNo').textContent = '—';
+  document.getElementById('referralDetails').style.display = 'none';
+  document.getElementById('verdictCard').style.display = 'none';
+  document.getElementById('auditSaveStatus').textContent = '';
+  document.getElementById('modFactorsTbody').innerHTML = '';
+  auditAddModFactor();
+  document.getElementById('solutionsTbody').innerHTML = '';
+  auditAddSolution();
+}
+
+// ── Save case → IndexedDB ─────────────────────────────
+async function auditSaveCase() {
+  const c = {};
+  ['af-district','af-fileno','af-name','af-address','af-dob','af-weight',
+   'af-admdate','af-admtime','af-deathdate','af-deathtime',
+   'af-etname','af-ettime',
+   'af-reffac','af-refdate','af-reftime','af-refdiag','af-refreason','af-preref','af-transport',
+   'af-malspec','af-mother','af-father','af-caregiver','af-feeding',
+   'af-hiv','af-hivstage','af-arv','af-cpt','af-art',
+   'af-cod-code-a','af-cod-a','af-cod-code-b','af-cod-b',
+   'af-cod-code-c','af-cod-c','af-cod-code-d','af-cod-d',
+   'af-other1-code','af-other1','af-other2-code','af-other2','af-other3-code','af-other3',
+   'af-summary-child','af-summary-hpc','af-summary-bg','af-summary-exam',
+   'af-ex-weight','af-ex-height','af-ex-muac','af-reftype'
+  ].forEach(id => { const el=document.getElementById(id); if(el) c[id]=el.value; });
+
+  ['af-gender','af-readmit','af-when','af-doa','af-file','af-ccp','af-incomplete',
+   'af-inadequate','af-recok','af-triage','af-referred','af-nutrition','af-avoidable'].forEach(name => {
+    const ch = document.querySelector(`[name="${name}"]:checked`);
+    c[name] = ch ? ch.value : '';
+  });
+
+  c.modFactors = [];
+  document.querySelectorAll('#modFactorsTbody tr').forEach(tr => {
+    const inputs = tr.querySelectorAll('input,select');
+    if (inputs.length >= 3) c.modFactors.push({ code:inputs[0].value, loc:inputs[1].value, comment:inputs[2].value });
+  });
+  c.solutions = [];
+  document.querySelectorAll('#solutionsTbody tr').forEach(tr => {
+    const inputs = tr.querySelectorAll('input,select');
+    if (inputs.length >= 4) c.solutions.push({ factor:inputs[0].value, solution:inputs[1].value, whom:inputs[2].value, when:inputs[3].value });
+  });
+  c.savedAt = new Date().toISOString();
+  c.savedBy = currentUser ? currentUser.name : 'Unknown';
+
+  if (!c['af-fileno']) {
+    alert('Please enter a File Number before saving.');
+    return;
+  }
+
+  auditCurrent = c['af-fileno'];
+  await auditDbPut(c);
+  await auditRenderList();
+
+  const status = document.getElementById('auditSaveStatus');
+  status.textContent = '✅ Saved to database · ' + new Date().toLocaleTimeString();
+  setTimeout(() => status.textContent = '', 3000);
+}
+
+// ── Delete case ───────────────────────────────────────
+async function auditDeleteCurrent() {
+  if (!auditCurrent) return;
+  const cases = await auditDbGetAll();
+  const c = cases.find(x => x['af-fileno'] === auditCurrent);
+  const name = c ? (c['af-name']||'this case') : 'this case';
+  if (!confirm(`Delete case for "${name}"?`)) return;
+  await auditDbDelete(auditCurrent);
+  auditCurrent = null;
+  auditClearForm();
+  await auditRenderList();
+}
+
+// ── Verdict card ──────────────────────────────────────
+function setVerdict(type) {
+  const card  = document.getElementById('verdictCard');
+  const label = document.getElementById('verdictLabel');
+  if (!type) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+  card.className = `verdict-card ${type}`;
+  const texts = {
+    avoidable:       '⚠️ This death has been assessed as AVOIDABLE',
+    'not-avoidable': '✅ This death has been assessed as NOT AVOIDABLE',
+    unsure:          '❓ Avoidability is UNCERTAIN — further review recommended'
+  };
+  label.textContent = texts[type] || '';
+}
+
+// ── Modifiable factors helpers ────────────────────────
+function auditAddModFactor() {
+  document.getElementById('modFactorsTbody').innerHTML += `<tr>
+    <td><input type="text" placeholder="Code"></td>
+    <td><select><option>Emergency/Admission/Ward</option><option>Referring Facility &amp; Transit</option></select></td>
+    <td><input type="text" placeholder="Comments"></td>
+    <td><button class="del-btn" onclick="this.closest('tr').remove()">✕</button></td>
+  </tr>`;
+}
+function auditAddSolution() {
+  document.getElementById('solutionsTbody').innerHTML += `<tr>
+    <td><input type="text" placeholder="Describe factor"></td>
+    <td><input type="text" placeholder="Proposed solution"></td>
+    <td><input type="text" placeholder="Responsible person"></td>
+    <td><input type="date"></td>
+    <td><button class="del-btn" onclick="this.closest('tr').remove()">✕</button></td>
+  </tr>`;
+}
+
+// ── Print ──────────────────────────────────────────────
+function auditPrintCase() { auditSaveCase().then(() => window.print()); }
+
+// ── Export CSV ─────────────────────────────────────────
+async function auditExportCSV() {
+  const cases = await auditDbGetAll();
+  if (!cases.length) { alert('No cases to export.'); return; }
+  const headers = ['File No','Name','DOB','Gender','Date of Admission','Date of Death',
+    'Immediate Cause','ICD Code','HIV Status','Avoidable','Saved At','Saved By'];
+  const rows = cases.map(c => [
+    c['af-fileno'], c['af-name'], c['af-dob'], c['af-gender'],
+    c['af-admdate'], c['af-deathdate'],
+    c['af-cod-a'], c['af-cod-code-a'],
+    c['af-hiv'], c['af-avoidable'], c.savedAt, c.savedBy||''
+  ].map(v => `"${(v||'').replace(/"/g,'""')}"`).join(','));
+  const csv = [headers.join(','), ...rows].join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download = 'death_audit_export.csv';
+  a.click();
+}
+</script>
+</body>
+</html>

@@ -814,6 +814,130 @@
   .icd-row { display: grid; grid-template-columns: 80px 1fr; gap: 8px; align-items: end; }
   .icd-row .af:first-child label { white-space: nowrap; }
 
+  /* ══════════════ SATURDAY DUTY ROSTER ══════════════ */
+  #rosterPage { background: #f0f4f8; min-height: 100vh; }
+  .roster-wrap { max-width: 1100px; margin: 0 auto; padding: 28px 20px 60px; }
+
+  /* Voice banner */
+  .roster-voice-banner {
+    background: linear-gradient(135deg, #1a3a5c, #1a5c3a);
+    border-radius: 12px; padding: 16px 22px;
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 24px; box-shadow: 0 4px 20px rgba(26,92,58,0.25);
+    position: relative; overflow: hidden;
+  }
+  .rvb-pulse {
+    width: 12px; height: 12px; border-radius: 50%;
+    background: #39e07a; flex-shrink: 0;
+    animation: rvbPulse 1.6s ease-in-out infinite;
+  }
+  @keyframes rvbPulse { 0%,100%{box-shadow:0 0 0 0 rgba(57,224,122,0.5)} 50%{box-shadow:0 0 0 8px rgba(57,224,122,0)} }
+  .rvb-text { flex: 1; color: white; font-size: 0.88rem; font-family: 'IBM Plex Sans', sans-serif; }
+  .rvb-btn {
+    background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
+    color: white; padding: 6px 14px; border-radius: 6px; cursor: pointer;
+    font-size: 0.78rem; transition: background 0.15s; white-space: nowrap;
+  }
+  .rvb-btn:hover { background: rgba(255,255,255,0.25); }
+
+  /* Header */
+  .roster-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; gap: 12px; flex-wrap: wrap; }
+  .roster-title { font-family: 'IBM Plex Sans', sans-serif; font-size: 1.3rem; font-weight: 700; color: #1a2a3a; }
+  .roster-sub { font-size: 0.74rem; color: #94a3b8; margin-top: 3px; font-family: 'IBM Plex Mono', monospace; }
+  .roster-add-btn {
+    background: #1a5c3a; color: white; border: none; padding: 10px 20px;
+    border-radius: 8px; font-size: 0.84rem; font-weight: 600; cursor: pointer;
+    transition: background 0.15s; white-space: nowrap;
+  }
+  .roster-add-btn:hover { background: #145230; }
+
+  /* Spotlight */
+  .roster-spotlight {
+    background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+    border-radius: 16px; padding: 28px 30px; margin-bottom: 24px;
+    text-align: center; position: relative; overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  }
+  .roster-spotlight::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(circle at 70% 50%, rgba(57,224,122,0.08) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .rs-badge {
+    display: inline-block; background: #39e07a; color: #0a1a10;
+    font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; font-weight: 700;
+    letter-spacing: 0.14em; padding: 4px 12px; border-radius: 20px; margin-bottom: 14px;
+  }
+  .rs-name { font-size: 2rem; font-weight: 800; color: white; margin-bottom: 6px; font-family: 'IBM Plex Sans', sans-serif; }
+  .rs-detail { font-size: 0.84rem; color: rgba(255,255,255,0.6); font-family: 'IBM Plex Mono', monospace; margin-bottom: 6px; }
+  .rs-date { font-size: 0.78rem; color: #39e07a; font-family: 'IBM Plex Mono', monospace; }
+
+  /* Table card */
+  .roster-card { background: white; border-radius: 14px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+  .roster-card-header {
+    padding: 14px 20px; border-bottom: 1px solid #f0f4f8;
+    display: flex; align-items: center; justify-content: space-between;
+    font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase; color: #334155;
+  }
+  .roster-search {
+    border: 1px solid #e2e8f0; border-radius: 6px; padding: 6px 12px;
+    font-size: 0.8rem; font-family: 'IBM Plex Sans', sans-serif; color: #334155;
+    outline: none; min-width: 180px; transition: border-color 0.15s;
+  }
+  .roster-search:focus { border-color: #1a5c3a; }
+  .roster-table-wrap { overflow-x: auto; }
+  .roster-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  .roster-table thead tr { background: #1a1a1a; }
+  .roster-table thead th { padding: 10px 14px; color: #ccc; font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; letter-spacing: 0.07em; text-transform: uppercase; text-align: left; white-space: nowrap; border: none; }
+  .roster-table tbody td { padding: 11px 14px; border-bottom: 1px solid #f1f5f9; color: #334155; vertical-align: middle; }
+  .roster-table tbody tr:last-child td { border-bottom: none; }
+  .roster-table tbody tr:hover td { background: #f8faff; }
+  .roster-table tbody tr.current-week td { background: rgba(26,92,58,0.06); }
+  .roster-table tbody tr.current-week td:first-child { border-left: 3px solid #1a5c3a; }
+  .roster-table tbody tr.past-week td { opacity: 0.55; }
+  .rt-status {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 10px; border-radius: 20px; font-size: 0.68rem; font-weight: 700;
+    font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.04em;
+  }
+  .rt-status.current  { background: rgba(26,92,58,0.12); color: #1a5c3a; }
+  .rt-status.upcoming { background: rgba(41,121,255,0.1);  color: #2979ff; }
+  .rt-status.past     { background: #f1f5f9; color: #94a3b8; }
+  .rt-del { background: none; border: none; color: #e74c3c; cursor: pointer; font-size: 0.8rem; padding: 4px 8px; border-radius: 4px; transition: background 0.12s; }
+  .rt-del:hover { background: rgba(231,76,60,0.1); }
+  .rt-edit { background: none; border: 1px solid #e2e8f0; color: #64748b; cursor: pointer; font-size: 0.75rem; padding: 4px 10px; border-radius: 4px; transition: all 0.12s; margin-right: 4px; }
+  .rt-edit:hover { border-color: #1a5c3a; color: #1a5c3a; }
+
+  /* Modal */
+  .roster-modal-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+    z-index: 8500; align-items: center; justify-content: center;
+  }
+  .roster-modal-overlay.open { display: flex; }
+  .roster-modal {
+    background: white; border-radius: 14px; width: 92%; max-width: 520px;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.3); animation: modalIn 0.2s ease;
+    overflow: hidden;
+  }
+  .roster-modal-header {
+    padding: 18px 22px; border-bottom: 1px solid #f0f4f8;
+    display: flex; align-items: center; justify-content: space-between;
+    background: #f8fafc;
+  }
+  .roster-modal-header h3 { font-size: 0.95rem; font-weight: 700; color: #1e293b; }
+  .roster-modal-body { padding: 20px 22px; }
+  .rm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .rm-field { display: flex; flex-direction: column; gap: 5px; }
+  .rm-field label { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: #64748b; font-family: 'IBM Plex Mono', monospace; }
+  .rm-field input { border: 1px solid #e2e8f0; border-radius: 7px; padding: 8px 12px; font-size: 0.86rem; font-family: 'IBM Plex Sans', sans-serif; color: #1e293b; outline: none; transition: border-color 0.15s; }
+  .rm-field input:focus { border-color: #1a5c3a; box-shadow: 0 0 0 3px rgba(26,92,58,0.08); }
+  .roster-modal-footer { padding: 14px 22px; border-top: 1px solid #f0f4f8; display: flex; justify-content: flex-end; gap: 10px; }
+  .rm-cancel { background: #f1f5f9; border: none; color: #64748b; padding: 9px 20px; border-radius: 7px; cursor: pointer; font-size: 0.84rem; font-weight: 600; }
+  .rm-cancel:hover { background: #e2e8f0; }
+  .rm-save { background: #1a5c3a; border: none; color: white; padding: 9px 20px; border-radius: 7px; cursor: pointer; font-size: 0.84rem; font-weight: 600; transition: background 0.15s; }
+  .rm-save:hover { background: #145230; }
+
   /* ══════════════ LOGIN SYSTEM ══════════════ */
   #loginOverlay {
     position: fixed; inset: 0; z-index: 9999;
@@ -1009,9 +1133,6 @@
           </div>
         </div>
         <button class="login-btn" onclick="doSignIn()">Sign In →</button>
-        <div class="login-footer" style="margin-top:16px;">
-          Default admin: <strong>admin</strong> / <strong>admin123</strong>
-        </div>
       </div>
 
       <div class="login-footer">Ward Worksheet v3.0 · Machinga District Hospital</div>
@@ -1097,6 +1218,11 @@
     <div class="sb-item" id="sb-audit" data-tooltip="Death Audit" onclick="switchTab('audit')">
       <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
       <span class="sb-item-label">Death Audit</span>
+    </div>
+
+    <div class="sb-item" id="sb-roster" data-tooltip="Duty Roster" onclick="switchTab('roster')">
+      <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <span class="sb-item-label">Duty Roster</span>
     </div>
 
     <div class="sb-divider"></div>
@@ -1972,6 +2098,102 @@
 </div><!-- /.audit-container -->
 </div><!-- /#auditPage -->
 
+<!-- ════════════ SATURDAY DUTY ROSTER ════════════ -->
+<div id="rosterPage" class="page">
+<div class="roster-wrap">
+
+  <!-- Voice banner -->
+  <div class="roster-voice-banner" id="rosterVoiceBanner">
+    <div class="rvb-pulse"></div>
+    <span class="rvb-text" id="rosterVoiceText">🔊 Loading duty announcement…</span>
+    <button class="rvb-btn" onclick="speakDuty()">🔁 Repeat</button>
+  </div>
+
+  <!-- Page header -->
+  <div class="roster-header">
+    <div>
+      <h2 class="roster-title">📅 2026 OPD Weekend & Holiday Duty Roster</h2>
+      <p class="roster-sub">Machinga District Hospital — Under 5 &amp; Over 5 On-Call Schedule</p>
+    </div>
+    <button class="roster-add-btn" onclick="openRosterModal()">+ Add Entry</button>
+  </div>
+
+  <!-- This week spotlight — two cards side by side -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+    <div class="roster-spotlight" id="rosterSpotlight" style="margin-bottom:0;">
+      <div class="rs-badge">UNDER 5 — ON DUTY</div>
+      <div class="rs-name" id="rsNameU5">—</div>
+      <div class="rs-date" id="rsDate">—</div>
+    </div>
+    <div class="roster-spotlight" id="rosterSpotlightO5" style="margin-bottom:0;background:linear-gradient(135deg,#1a3a5c,#2c5f8a);">
+      <div class="rs-badge">OVER 5 — ON DUTY</div>
+      <div class="rs-name" id="rsNameO5">—</div>
+      <div class="rs-date" id="rsDateO5">—</div>
+    </div>
+  </div>
+
+  <!-- Roster table -->
+  <div class="roster-card">
+    <div class="roster-card-header">
+      <span>Full Schedule</span>
+      <div style="display:flex;gap:8px;">
+        <input class="roster-search" id="rosterSearch" type="text" placeholder="Search name or date…" oninput="renderRosterTable()">
+      </div>
+    </div>
+    <div class="roster-table-wrap">
+      <table class="roster-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Date</th>
+            <th>Under 5</th>
+            <th>Over 5</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="rosterTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+</div><!-- /#rosterPage -->
+
+<!-- ════ ROSTER MODAL ════ -->
+<div id="rosterModal" class="roster-modal-overlay" onclick="if(event.target===this)closeRosterModal()">
+  <div class="roster-modal">
+    <div class="roster-modal-header">
+      <h3 id="rosterModalTitle">Add Roster Entry</h3>
+      <button onclick="closeRosterModal()" style="background:none;border:none;color:#aaa;font-size:1.2rem;cursor:pointer;">✕</button>
+    </div>
+    <div class="roster-modal-body">
+      <div class="rm-grid">
+        <div class="rm-field">
+          <label>Date (Weekend / Holiday) *</label>
+          <input type="date" id="rmDate">
+        </div>
+        <div class="rm-field">
+          <label>Under 5 Officer *</label>
+          <input type="text" id="rmUnder5" placeholder="e.g. Happy">
+        </div>
+        <div class="rm-field">
+          <label>Over 5 Officer *</label>
+          <input type="text" id="rmOver5" placeholder="e.g. Bernard">
+        </div>
+        <div class="rm-field">
+          <label>Notes (optional)</label>
+          <input type="text" id="rmNotes" placeholder="Any special instructions…">
+        </div>
+      </div>
+    </div>
+    <div class="roster-modal-footer">
+      <button class="rm-cancel" onclick="closeRosterModal()">Cancel</button>
+      <button class="rm-save" id="rmSaveBtn" onclick="saveRosterEntry()">Save Entry</button>
+    </div>
+  </div>
+</div>
+
 <!-- ════════════ SAVED RECORDS PANEL ════════════ -->
 <div id="savedRecordsOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:6000;align-items:flex-end;justify-content:center;" onclick="if(event.target===this)closeSavedRecordsPanel()">
   <div style="background:white;width:100%;max-width:900px;max-height:82vh;border-radius:14px 14px 0 0;display:flex;flex-direction:column;box-shadow:0 -8px 40px rgba(0,0,0,0.25);animation:slideUp 0.22s ease;">
@@ -2247,8 +2469,23 @@ function stopActivityTracking() {
   try { localStorage.removeItem(LAST_ACTIVE_KEY); } catch(e) {}
 }
 
+const APP_VERSION_KEY  = 'ww_app_version';
+const APP_VERSION      = 'v3.2';
+
 window.addEventListener('DOMContentLoaded', () => {
   loadPeriodData();
+
+  // If app version changed, clear old session so login is shown fresh
+  try {
+    const storedVersion = localStorage.getItem(APP_VERSION_KEY);
+    if (storedVersion !== APP_VERSION) {
+      localStorage.removeItem(SESSION_KEY);
+      localStorage.removeItem(LAST_ACTIVE_KEY);
+      localStorage.setItem(APP_VERSION_KEY, APP_VERSION);
+      return; // show login
+    }
+  } catch(e) {}
+
   // Restore session after refresh
   try {
     const saved      = localStorage.getItem(SESSION_KEY);
@@ -2258,8 +2495,7 @@ window.addEventListener('DOMContentLoaded', () => {
       if (lastActive && (Date.now() - lastActive) > INACTIVITY_MS) {
         localStorage.removeItem(SESSION_KEY);
         localStorage.removeItem(LAST_ACTIVE_KEY);
-        // Stay on login screen
-        return;
+        return; // show login
       }
       const { username } = JSON.parse(saved);
       const user = appUsers.find(u => u.username === username);
@@ -2320,8 +2556,8 @@ function toggleSidebar() {
 }
 
 function switchTab(tab) {
-  const tabs    = ['entry','viz','explorer','audit'];
-  const pageIds = ['entryPage','vizPage','explorerPage','auditPage'];
+  const tabs    = ['entry','viz','explorer','audit','roster'];
+  const pageIds = ['entryPage','vizPage','explorerPage','auditPage','rosterPage'];
   tabs.forEach((t,i) => {
     const sbEl = document.getElementById('sb-'+t);
     if (sbEl) sbEl.classList.toggle('active', t===tab);
@@ -2344,6 +2580,7 @@ function switchTab(tab) {
   }
   if (tab==='explorer') vzInit();
   if (tab==='audit')    auditInit();
+  if (tab==='roster')   rosterInit();
 }
 
 // ─── Clear ────────────────────────────────────────────────────────────────────
@@ -3706,11 +3943,11 @@ function doSignOut(silent = false) {
   });
 
   // Reset sidebar nav active state to entry
-  ['entry','viz','explorer','audit'].forEach(t => {
+  ['entry','viz','explorer','audit','roster'].forEach(t => {
     const el = document.getElementById('sb-'+t);
     if (el) el.classList.toggle('active', t==='entry');
   });
-  ['entryPage','vizPage','explorerPage','auditPage'].forEach((id,i) => {
+  ['entryPage','vizPage','explorerPage','auditPage','rosterPage'].forEach((id,i) => {
     document.getElementById(id).classList.toggle('active', i===0);
   });
 
@@ -4397,6 +4634,235 @@ async function auditExportCSV() {
   a.download = 'death_audit_export.csv';
   a.click();
 }
+// ══════════════════════════════════════════════════════
+// SATURDAY DUTY ROSTER
+// ══════════════════════════════════════════════════════
+
+const ROSTER_KEY = 'ww_duty_roster_v2';
+let rosterEntries = [];
+let rosterEditId  = null;
+
+// ── Seed data from the 2026 OPD Excel roster ──────────
+const ROSTER_SEED = [
+  { id:'r01', date:'2026-01-10', under5:'Happy',    over5:'Bernard'  },
+  { id:'r02', date:'2026-01-15', under5:'Grace',    over5:'Mervin'   },
+  { id:'r03', date:'2026-01-17', under5:'Tawanda',  over5:'Martha'   },
+  { id:'r04', date:'2026-01-24', under5:'Bernard',  over5:'Happy'    },
+  { id:'r05', date:'2026-01-31', under5:'Mervin',   over5:'Grace'    },
+  { id:'r06', date:'2026-02-07', under5:'Martha',   over5:'Tawanda'  },
+  { id:'r07', date:'2026-02-14', under5:'Aaron',    over5:'Happy'    },
+  { id:'r08', date:'2026-02-21', under5:'Bernard',  over5:'Grace'    },
+  { id:'r09', date:'2026-02-28', under5:'Mervin',   over5:'Tawanda'  },
+  { id:'r10', date:'2026-03-07', under5:'Martha',   over5:'Bernard'  },
+  { id:'r11', date:'2026-03-14', under5:'Happy',    over5:'Mervin'   },
+  { id:'r12', date:'2026-03-21', under5:'Rachel',   over5:'Martha'   },
+  { id:'r13', date:'2026-03-28', under5:'Tawanda',  over5:'Blessings'},
+  { id:'r14', date:'2026-04-03', under5:'Happy',    over5:'Bernard'  },
+  { id:'r15', date:'2026-04-04', under5:'Rachel',   over5:'Mervin'   },
+  { id:'r16', date:'2026-04-06', under5:'Martha',   over5:'Tawanda'  },
+  { id:'r17', date:'2026-04-11', under5:'Blessings',over5:'Happy'    },
+  { id:'r18', date:'2026-04-18', under5:'Bernard',  over5:'Grace'    },
+  { id:'r19', date:'2026-04-25', under5:'Mervin',   over5:'Martha'   },
+];
+
+function rosterLoad() {
+  try {
+    const raw = localStorage.getItem(ROSTER_KEY);
+    rosterEntries = raw ? JSON.parse(raw) : [];
+  } catch(e) { rosterEntries = []; }
+  // Seed from Excel if empty or if seed has more entries
+  if (!rosterEntries.length) {
+    rosterEntries = ROSTER_SEED.map(e => ({...e, notes:''}));
+    rosterSave();
+  }
+}
+
+function rosterSave() {
+  try { localStorage.setItem(ROSTER_KEY, JSON.stringify(rosterEntries)); } catch(e) {}
+}
+
+function getTodayISO() {
+  return new Date().toISOString().slice(0,10);
+}
+
+function getNextDuty() {
+  const today = getTodayISO();
+  const sorted = [...rosterEntries].sort((a,b) => a.date.localeCompare(b.date));
+  // Find today or next upcoming
+  return sorted.find(e => e.date >= today) || sorted[sorted.length - 1] || null;
+}
+
+function formatDateFriendly(isoDate) {
+  const d = new Date(isoDate + 'T00:00:00');
+  return d.toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+}
+
+function speakDuty() {
+  const duty = getNextDuty();
+  if (!duty) {
+    document.getElementById('rosterVoiceText').textContent = '🔇 No upcoming duty found.';
+    return;
+  }
+  window.speechSynthesis.cancel();
+  const today = getTodayISO();
+  const isToday = duty.date === today;
+  const dateLabel = isToday ? 'today' : 'on ' + formatDateFriendly(duty.date);
+  const u5 = duty.under5 ? duty.under5.charAt(0).toUpperCase() + duty.under5.slice(1) : '—';
+  const o5 = duty.over5  ? duty.over5.charAt(0).toUpperCase()  + duty.over5.slice(1)  : '—';
+  const text = `Attention. OPD duty ${dateLabel}. Under 5 is ${u5}. Over 5 is ${o5}.${duty.notes ? ' Note: ' + duty.notes : ''} Thank you.`;
+
+  document.getElementById('rosterVoiceText').textContent = `🔊 Under 5: ${u5}  ·  Over 5: ${o5}  —  ${formatDateFriendly(duty.date)}`;
+
+  function doSpeak() {
+    const msg  = new SpeechSynthesisUtterance(text);
+    msg.rate   = 0.9;
+    msg.pitch  = 1.0;
+    msg.volume = 1.0;
+    const voices = window.speechSynthesis.getVoices();
+    const preferred = voices.find(v => /en-GB/i.test(v.lang))
+                   || voices.find(v => /en-US/i.test(v.lang))
+                   || voices.find(v => /en/i.test(v.lang))
+                   || voices[0];
+    if (preferred) msg.voice = preferred;
+    window.speechSynthesis.speak(msg);
+  }
+
+  const voices = window.speechSynthesis.getVoices();
+  if (voices.length > 0) { doSpeak(); }
+  else {
+    window.speechSynthesis.onvoiceschanged = () => {
+      window.speechSynthesis.onvoiceschanged = null;
+      doSpeak();
+    };
+  }
+}
+
+let rosterInitDone = false;
+function rosterInit() {
+  rosterLoad();
+  renderRosterSpotlight();
+  renderRosterTable();
+  setTimeout(() => speakDuty(), 700);
+}
+
+function renderRosterSpotlight() {
+  const duty  = getNextDuty();
+  const today = getTodayISO();
+  const label = duty ? formatDateFriendly(duty.date) : '—';
+  const isToday = duty && duty.date === today;
+  const badge = isToday ? 'ON DUTY TODAY' : 'NEXT ON DUTY';
+
+  document.querySelectorAll('.rs-badge').forEach(el => el.textContent = badge);
+  document.getElementById('rsNameU5').textContent = duty ? (duty.under5 || '—') : '—';
+  document.getElementById('rsNameO5').textContent = duty ? (duty.over5  || '—') : '—';
+  document.getElementById('rsDate').textContent   = label;
+  document.getElementById('rsDateO5').textContent = label;
+}
+
+function renderRosterTable() {
+  const today   = getTodayISO();
+  const q       = (document.getElementById('rosterSearch')?.value || '').toLowerCase();
+  const tbody   = document.getElementById('rosterTableBody');
+  const sorted  = [...rosterEntries].sort((a,b) => a.date.localeCompare(b.date));
+  const filtered = q ? sorted.filter(e =>
+    e.under5.toLowerCase().includes(q) ||
+    e.over5.toLowerCase().includes(q)  ||
+    e.date.includes(q) ||
+    formatDateFriendly(e.date).toLowerCase().includes(q)
+  ) : sorted;
+
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:28px;color:#94a3b8;font-style:italic;">No entries found.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map((e, i) => {
+    const isPast    = e.date < today;
+    const isToday   = e.date === today;
+    const rowClass  = isToday ? 'current-week' : (isPast ? 'past-week' : '');
+    const status    = isToday
+      ? `<span class="rt-status current">● Today</span>`
+      : (isPast
+        ? `<span class="rt-status past">✓ Done</span>`
+        : `<span class="rt-status upcoming">↑ Upcoming</span>`);
+    const u5raw = (e.under5 || e.name || '').trim();
+    const o5raw = (e.over5  || e.role || '').trim();
+    const u5 = u5raw ? u5raw.charAt(0).toUpperCase() + u5raw.slice(1) : '—';
+    const o5 = o5raw ? o5raw.charAt(0).toUpperCase() + o5raw.slice(1) : '—';
+    return `
+    <tr class="${rowClass}">
+      <td style="font-family:'IBM Plex Mono',monospace;color:#94a3b8;font-size:0.74rem;">${i+1}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;font-size:0.78rem;font-weight:600;color:#1e293b;">${formatDateFriendly(e.date)}</td>
+      <td style="font-weight:600;color:#1a5c3a;">${u5}</td>
+      <td style="font-weight:600;color:#2c5f8a;">${o5}</td>
+      <td>${status}</td>
+      <td style="white-space:nowrap;">
+        <button class="rt-edit" onclick="editRosterEntry('${e.id}')">✏ Edit</button>
+        <button class="rt-del"  onclick="deleteRosterEntry('${e.id}')">✕</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function openRosterModal(id = null) {
+  rosterEditId = id;
+  document.getElementById('rosterModalTitle').textContent = id ? 'Edit Roster Entry' : 'Add Roster Entry';
+  document.getElementById('rmSaveBtn').textContent        = id ? 'Update Entry' : 'Save Entry';
+  if (id) {
+    const e = rosterEntries.find(r => r.id === id);
+    document.getElementById('rmDate').value   = e.date;
+    document.getElementById('rmUnder5').value = e.under5;
+    document.getElementById('rmOver5').value  = e.over5;
+    document.getElementById('rmNotes').value  = e.notes || '';
+  } else {
+    document.getElementById('rmDate').value   = getTodayISO();
+    document.getElementById('rmUnder5').value = '';
+    document.getElementById('rmOver5').value  = '';
+    document.getElementById('rmNotes').value  = '';
+  }
+  document.getElementById('rosterModal').classList.add('open');
+}
+
+function closeRosterModal() {
+  document.getElementById('rosterModal').classList.remove('open');
+  rosterEditId = null;
+}
+
+function editRosterEntry(id) { openRosterModal(id); }
+
+function saveRosterEntry() {
+  const date   = document.getElementById('rmDate').value;
+  const under5 = document.getElementById('rmUnder5').value.trim();
+  const over5  = document.getElementById('rmOver5').value.trim();
+  const notes  = document.getElementById('rmNotes').value.trim();
+  if (!date || !under5 || !over5) { alert('Please fill in Date, Under 5, and Over 5.'); return; }
+  if (rosterEditId) {
+    const idx = rosterEntries.findIndex(r => r.id === rosterEditId);
+    if (idx > -1) rosterEntries[idx] = { ...rosterEntries[idx], date, under5, over5, notes };
+  } else {
+    rosterEntries.push({ id: 'r' + Date.now(), date, under5, over5, notes });
+  }
+  rosterSave();
+  closeRosterModal();
+  renderRosterSpotlight();
+  renderRosterTable();
+}
+
+function deleteRosterEntry(id) {
+  const e = rosterEntries.find(r => r.id === id);
+  if (!e || !confirm(`Delete entry for ${formatDateFriendly(e.date)}?`)) return;
+  rosterEntries = rosterEntries.filter(r => r.id !== id);
+  rosterSave();
+  renderRosterSpotlight();
+  renderRosterTable();
+}
+
+// Pre-load voices
+if (window.speechSynthesis) {
+  window.speechSynthesis.getVoices();
+  window.speechSynthesis.onvoiceschanged = () => {};
+}
+
 </script>
 </div><!-- /main-content -->
 </div><!-- /app-shell -->

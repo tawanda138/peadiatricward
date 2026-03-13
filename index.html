@@ -1431,9 +1431,10 @@
       <div class="kpi blue"   data-icon="👥"><div class="kpi-label">Total Admissions</div><div class="kpi-value" id="kAdm">—</div><div class="kpi-sub">from summary field</div></div>
       <div class="kpi red"    data-icon="📈"><div class="kpi-label">Total Deaths</div><div class="kpi-value" id="kDeaths">—</div><div class="kpi-sub">all ages</div></div>
       <div class="kpi purple" data-icon="🏥"><div class="kpi-label">Disease Admissions</div><div class="kpi-value" id="kDisch">—</div><div class="kpi-sub">sum from disease table</div></div>
+      <div class="kpi green"  data-icon="🛏"><div class="kpi-label">Inpatient Days</div><div class="kpi-value" id="kInpatDays">—</div><div class="kpi-sub" id="kInpatSub">total bed-days</div></div>
       <div class="kpi orange" data-icon="🚶"><div class="kpi-label">Abscondees</div><div class="kpi-value" id="kAbs">—</div><div class="kpi-sub">left without discharge</div></div>
       <div class="kpi teal"   data-icon="🚑"><div class="kpi-label">Referrals In</div><div class="kpi-value" id="kRefIn">—</div><div class="kpi-sub">from health centres</div></div>
-      <div class="kpi green"  data-icon="➕"><div class="kpi-label">Referrals Out</div><div class="kpi-value" id="kRefOut">—</div><div class="kpi-sub">to central hospitals</div></div>
+      <div class="kpi blue"   data-icon="➕" style="background:linear-gradient(135deg,#0891b2,#0e7490);"><div class="kpi-label">Referrals Out</div><div class="kpi-value" id="kRefOut">—</div><div class="kpi-sub">to central hospitals</div></div>
     </div>
 
     <!-- Row 1: Monthly overview bar -->
@@ -2906,9 +2907,11 @@ async function buildDashboard() {
   document.getElementById('vizSub').textContent     = `— ${periodLabel}`;
 
   if (!filtered.length) {
-    ['kAdm','kDisch','kDeaths','kRefIn','kRefOut','kAbs'].forEach(id => {
+    ['kAdm','kDisch','kDeaths','kRefIn','kRefOut','kAbs','kInpatDays'].forEach(id => {
       document.getElementById(id).textContent = '—';
     });
+    const kSub = document.getElementById('kInpatSub');
+    if (kSub) kSub.textContent = 'total bed-days';
     ['ad','adt','ov','t10d','t10dt'].forEach(id => dch(id));
     const body = document.getElementById('brkBody');
     if (body) body.innerHTML = `<tr><td colspan="9" style="text-align:center;color:#94a3b8;padding:40px;font-style:italic;">No data for this period — submit data from the Data Entry tab</td></tr>`;
@@ -2941,12 +2944,19 @@ async function buildDashboard() {
   const totAdmO5  = cats.reduce((s,c)=>s+ct[c].do5,0);
 
   // KPIs
-  document.getElementById('kAdm').textContent    = adm||totAdm||'—';
-  document.getElementById('kDisch').textContent  = totAdm||'—';
-  document.getElementById('kDeaths').textContent = totDeaths||'—';
-  document.getElementById('kRefIn').textContent  = rIn||'—';
-  document.getElementById('kRefOut').textContent = rOut||'—';
-  document.getElementById('kAbs').textContent    = abs||'—';
+  const inpatDaysTotal = filtered.reduce((s,p) => s + (p.inpatDays || 0), 0);
+  const avgLOS = (adm || totAdm) > 0
+    ? (inpatDaysTotal / (adm || totAdm)).toFixed(1)
+    : null;
+
+  document.getElementById('kAdm').textContent        = adm||totAdm||'—';
+  document.getElementById('kDisch').textContent      = totAdm||'—';
+  document.getElementById('kDeaths').textContent     = totDeaths||'—';
+  document.getElementById('kInpatDays').textContent  = inpatDaysTotal||'—';
+  document.getElementById('kInpatSub').textContent   = avgLOS ? `avg stay ${avgLOS} days` : 'total bed-days';
+  document.getElementById('kRefIn').textContent      = rIn||'—';
+  document.getElementById('kRefOut').textContent     = rOut||'—';
+  document.getElementById('kAbs').textContent        = abs||'—';
 
   // Age donut — admissions
   dch('ad'); document.getElementById('bAgeDisch').textContent = `Total: ${totAdm}`;

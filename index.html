@@ -4612,8 +4612,8 @@ function renderAdminTable() {
       ? `<span class="role-badge superuser">${u.role}</span>`
       : `<select class="role-select-inline" onchange="adminChangeRole(${i},this.value)">${roleOpts}</select>`;
 
-    // Password reset
-    const passCell = isProtected ? '—' : `
+    // Password reset — always shown (even for protected super user)
+    const passCell = `
       <button class="pass-reset-btn" onclick="adminShowPassReset(${i})">🔑 Reset</button>
       <div id="passReset${i}" style="display:none;margin-top:6px;">
         <div style="display:flex;gap:6px;align-items:center;">

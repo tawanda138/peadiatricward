@@ -2999,7 +2999,7 @@ function stopActivityTracking() {
 const APP_VERSION_KEY  = 'ww_app_version';
 const APP_VERSION      = 'v3.2';
 
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
   loadPeriodData();
 
   // If app version changed, clear old session so login is shown fresh
@@ -3009,16 +3009,19 @@ window.addEventListener('DOMContentLoaded', () => {
       localStorage.removeItem(SESSION_KEY);
       localStorage.removeItem(LAST_ACTIVE_KEY);
       localStorage.setItem(APP_VERSION_KEY, APP_VERSION);
+      await usersInit();
       return; // show login
     }
   } catch(e) {}
+
+  // Load users from Supabase (falls back to localStorage / defaults)
+  await usersInit();
 
   // Restore session after refresh
   try {
     const saved      = localStorage.getItem(SESSION_KEY);
     const lastActive = parseInt(localStorage.getItem(LAST_ACTIVE_KEY) || '0');
     if (saved) {
-      // Check if session expired due to inactivity
       if (lastActive && (Date.now() - lastActive) > INACTIVITY_MS) {
         localStorage.removeItem(SESSION_KEY);
         localStorage.removeItem(LAST_ACTIVE_KEY);
@@ -4373,10 +4376,8 @@ function applyExtractedData() {
 // LOGIN SYSTEM
 // ══════════════════════════════════════════════════════
 
-const ADMIN_CODE = 'MDH2025'; // Used internally for admin operations
+const ADMIN_CODE = 'MDH2025';
 
-// Default users stored in memory (in real app would be server-side)
-// Default tab access per role
 const ROLE_DEFAULTS = {
   'Super User':    ['entry','viz','explorer','audit','roster','dhis2','deBrowser'],
   'Admin':         ['entry','viz','explorer','audit','roster'],
@@ -4386,22 +4387,98 @@ const ROLE_DEFAULTS = {
 
 const USERS_KEY = 'ww_app_users_v2';
 
-function usersLoad() {
+// ── Supabase user table helpers ───────────────────────
+const APP_USERS_TABLE = 'app_users';
+
+async function dbUsersGetAll() {
+  try {
+    const res = await fetch(`${SUPA_URL}/rest/v1/${APP_USERS_TABLE}?select=*`, { headers: supaHeaders() });
+    if (!res.ok) throw new Error('fetch failed');
+    const rows = await res.json();
+    if (!Array.isArray(rows) || !rows.length) throw new Error('empty');
+    return rows.map(r => ({
+      username: r.username,
+      password: r.password,
+      name:     r.name,
+      role:     r.role,
+      ward:     r.ward,
+      tabs:     Array.isArray(r.tabs) ? r.tabs : (typeof r.tabs === 'string' ? JSON.parse(r.tabs) : ['viz']),
+    }));
+  } catch(e) { return null; }
+}
+
+async function dbUserUpsert(user) {
+  try {
+    await fetch(`${SUPA_URL}/rest/v1/${APP_USERS_TABLE}`, {
+      method: 'POST',
+      headers: { ...supaHeaders(), 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify({
+        username: user.username,
+        password: user.password,
+        name:     user.name,
+        role:     user.role,
+        ward:     user.ward,
+        tabs:     user.tabs,
+      }),
+    });
+  } catch(e) {}
+}
+
+async function dbUserDelete(username) {
+  try {
+    await fetch(`${SUPA_URL}/rest/v1/${APP_USERS_TABLE}?username=eq.${encodeURIComponent(username)}`, {
+      method: 'DELETE', headers: supaHeaders(),
+    });
+  } catch(e) {}
+}
+
+// ── Default seed users ────────────────────────────────
+const DEFAULT_USERS = [
+  { username:'admin',   password:'admin123', name:'System Admin',   role:'Super User',   ward:'All Wards',  tabs:['entry','viz','explorer','audit','roster','dhis2','deBrowser'] },
+  { username:'data1',   password:'data123',  name:'Data Officer 1', role:'Data Officer', ward:'Female Ward', tabs:['entry','viz','audit','roster'] },
+  { username:'viewer1', password:'view123',  name:'Viewer User',    role:'Viewer',       ward:'All Wards',  tabs:['viz','roster'] },
+];
+
+// ── usersInit: load from Supabase → localStorage → defaults ──
+async function usersInit() {
+  const fromDb = await dbUsersGetAll();
+  if (fromDb && fromDb.length) {
+    appUsers = fromDb;
+    try { localStorage.setItem(USERS_KEY, JSON.stringify(appUsers)); } catch(e) {}
+    return;
+  }
+  // Try localStorage fallback
+  try {
+    const saved = JSON.parse(localStorage.getItem(USERS_KEY));
+    if (saved && saved.length) {
+      appUsers = saved;
+      for (const u of appUsers) await dbUserUpsert(u);
+      return;
+    }
+  } catch(e) {}
+  // Seed defaults
+  appUsers = DEFAULT_USERS.map(u => ({...u}));
+  for (const u of appUsers) await dbUserUpsert(u);
+  try { localStorage.setItem(USERS_KEY, JSON.stringify(appUsers)); } catch(e) {}
+}
+
+// ── usersSave: persist to localStorage + Supabase ─────
+async function usersSave() {
+  try { localStorage.setItem(USERS_KEY, JSON.stringify(appUsers)); } catch(e) {}
+  for (const u of appUsers) {
+    try { await dbUserUpsert(u); } catch(e) {}
+  }
+}
+
+// Seed appUsers synchronously from localStorage while Supabase loads
+let appUsers = (() => {
   try {
     const saved = JSON.parse(localStorage.getItem(USERS_KEY));
     if (saved && saved.length) return saved;
   } catch(e) {}
-  return [
-    { username:'admin',   password:'admin123', name:'System Admin',   role:'Super User',   ward:'All Wards',  tabs:['entry','viz','explorer','audit','roster','dhis2','deBrowser'] },
-    { username:'data1',   password:'data123',  name:'Data Officer 1', role:'Data Officer', ward:'Female Ward', tabs:['entry','viz','audit','roster'] },
-    { username:'viewer1', password:'view123',  name:'Viewer User',    role:'Viewer',       ward:'All Wards',  tabs:['viz','roster'] },
-  ];
-}
-function usersSave() {
-  try { localStorage.setItem(USERS_KEY, JSON.stringify(appUsers)); } catch(e) {}
-}
+  return DEFAULT_USERS.map(u => ({...u}));
+})();
 
-let appUsers = usersLoad();
 let currentUser = null;
 
 // ── Sign In ───────────────────────────────────────────
@@ -4584,22 +4661,25 @@ const ALL_TABS = [
   {id:'deBrowser',  label:'Data Elements'},
 ];
 
+// ── Shared inline edit style ──────────────────────────
+const _INL = `background:#1a1a1a;border:1px solid #333;color:#e8e3dd;padding:4px 8px;border-radius:4px;font-size:0.78rem;outline:none;width:100%;box-sizing:border-box;`;
+const _BTN = `background:#1a5c3a;border:none;color:white;padding:4px 10px;border-radius:4px;font-size:0.7rem;cursor:pointer;white-space:nowrap;margin-top:3px;`;
+
 function renderAdminTable() {
   const tbody = document.getElementById('adminUserTable');
   tbody.innerHTML = '';
   const DHIS2_TABS = ['dhis2','deBrowser'];
   appUsers.forEach((u,i) => {
-    const roleClass = (u.role||'').toLowerCase().replace(/\s+/g,'');
-    const userTabs  = u.tabs || ROLE_DEFAULTS[u.role] || ['viz'];
-    const isSelf    = u.username === currentUser?.username;
+    const userTabs    = u.tabs || ROLE_DEFAULTS[u.role] || ['viz'];
+    const isSelf      = u.username === currentUser?.username;
     const isProtected = u.username === 'admin';
 
     // Tab chips
     const chips = ALL_TABS.map(t => {
-      const granted  = userTabs.includes(t.id);
-      const isDhis   = DHIS2_TABS.includes(t.id);
-      const cls      = `tab-chip ${granted?'granted':'denied'} ${isDhis?'dhis-chip':''}`;
-      return `<span class="${cls}" onclick="adminToggleTab(${i},'${t.id}',${!granted})" title="${granted?'Click to revoke':'Click to grant'} access to ${t.label}">
+      const granted = userTabs.includes(t.id);
+      const isDhis  = DHIS2_TABS.includes(t.id);
+      const cls     = `tab-chip ${granted?'granted':'denied'} ${isDhis?'dhis-chip':''}`;
+      return `<span class="${cls}" onclick="adminToggleTab(${i},'${t.id}',${!granted})" title="${granted?'Revoke':'Grant'} ${t.label}">
         <span class="chip-dot"></span>${t.label}
       </span>`;
     }).join('');
@@ -4612,24 +4692,39 @@ function renderAdminTable() {
       ? `<span class="role-badge superuser">${u.role}</span>`
       : `<select class="role-select-inline" onchange="adminChangeRole(${i},this.value)">${roleOpts}</select>`;
 
-    // Password reset — always shown (even for protected super user)
+    // Editable Name
+    const nameCell = `
+      <div style="display:flex;flex-direction:column;gap:2px;min-width:120px;">
+        <input type="text" id="editName${i}" value="${u.name.replace(/"/g,'&quot;')}" style="${_INL}" placeholder="Full name">
+        <div style="display:flex;align-items:center;gap:5px;">
+          <button style="${_BTN}" onclick="adminSaveName(${i})">💾 Save name</button>
+          ${isSelf ? '<span style="font-size:0.58rem;background:rgba(26,92,58,0.3);color:#2ecc71;padding:1px 6px;border-radius:8px;">you</span>' : ''}
+        </div>
+      </div>`;
+
+    // Editable Username (protected admin cannot rename)
+    const usernameCell = isProtected
+      ? `<span style="font-family:'IBM Plex Mono',monospace;color:#aaa;font-size:0.76rem;">${u.username}</span>`
+      : `<div style="display:flex;flex-direction:column;gap:2px;min-width:100px;">
+          <input type="text" id="editUser${i}" value="${u.username}" style="${_INL};font-family:'IBM Plex Mono',monospace;" placeholder="username">
+          <button style="${_BTN}" onclick="adminSaveUsername(${i})">💾 Save username</button>
+        </div>`;
+
+    // Password reset — always shown
     const passCell = `
       <button class="pass-reset-btn" onclick="adminShowPassReset(${i})">🔑 Reset</button>
       <div id="passReset${i}" style="display:none;margin-top:6px;">
-        <div style="display:flex;gap:6px;align-items:center;">
+        <div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap;">
           <input type="password" id="newPass${i}" placeholder="New password"
-            style="background:#1a1a1a;border:1px solid #444;color:#e8e3dd;padding:4px 8px;border-radius:4px;font-size:0.78rem;width:130px;outline:none;">
-          <button style="background:#1a5c3a;border:none;color:white;padding:4px 10px;border-radius:4px;font-size:0.72rem;cursor:pointer;" onclick="adminSavePass(${i})">Save</button>
-          <button style="background:none;border:1px solid #333;color:#888;padding:4px 8px;border-radius:4px;font-size:0.72rem;cursor:pointer;" onclick="adminShowPassReset(${i},true)">✕</button>
+            style="${_INL};width:120px;">
+          <button style="${_BTN}" onclick="adminSavePass(${i})">Save</button>
+          <button style="background:none;border:1px solid #333;color:#888;padding:4px 8px;border-radius:4px;font-size:0.7rem;cursor:pointer;" onclick="adminShowPassReset(${i},true)">✕</button>
         </div>
       </div>`;
 
     tbody.innerHTML += `<tr>
-      <td style="font-weight:600;color:#e8e3dd;">
-        ${u.name}
-        ${isSelf ? '<span style="font-size:0.6rem;background:rgba(26,92,58,0.3);color:#2ecc71;padding:1px 6px;border-radius:8px;margin-left:4px;">you</span>' : ''}
-      </td>
-      <td style="font-family:'IBM Plex Mono',monospace;color:#aaa;font-size:0.76rem;">${u.username}</td>
+      <td style="vertical-align:top;padding-top:6px;">${nameCell}</td>
+      <td style="vertical-align:top;padding-top:6px;">${usernameCell}</td>
       <td>${roleCell}</td>
       <td style="color:#888;font-size:0.74rem;">${u.ward}</td>
       <td>
@@ -4644,6 +4739,42 @@ function renderAdminTable() {
   });
 }
 
+// ── Save Name ─────────────────────────────────────────
+function adminSaveName(idx) {
+  const val = document.getElementById('editName'+idx)?.value.trim();
+  if (!val) { alert('Name cannot be empty.'); return; }
+  appUsers[idx].name = val;
+  if (currentUser && appUsers[idx].username === currentUser.username) {
+    currentUser.name = val;
+    const initials = val.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    document.getElementById('sbAvatar').textContent   = initials;
+    document.getElementById('sbUserName').textContent = val.split(' ')[0];
+    document.getElementById('ddName').textContent     = val;
+  }
+  usersSave().then(() => adminToast('✅ Name updated'));
+}
+
+// ── Save Username ─────────────────────────────────────
+function adminSaveUsername(idx) {
+  const val = document.getElementById('editUser'+idx)?.value.trim().toLowerCase();
+  if (!val || val.length < 3) { alert('Username must be at least 3 characters.'); return; }
+  if (!/^[a-z0-9_.-]+$/.test(val)) { alert('Username may only contain letters, numbers, _ . -'); return; }
+  if (appUsers.find((u,i2) => u.username === val && i2 !== idx)) { alert('Username already taken.'); return; }
+  const oldUsername = appUsers[idx].username;
+  if (oldUsername === val) { adminToast('Username unchanged'); return; }
+  appUsers[idx].username = val;
+  if (currentUser && oldUsername === currentUser.username) {
+    currentUser.username = val;
+    try { localStorage.setItem('ww_session', JSON.stringify({ username: val })); } catch(e) {}
+  }
+  // Delete old Supabase row, upsert new
+  dbUserDelete(oldUsername)
+    .then(() => usersSave())
+    .then(() => { renderAdminTable(); adminToast(`✅ Username changed to "${val}"`);
+  });
+}
+
+// ── Change Role ───────────────────────────────────────
 function adminChangeRole(idx, newRole) {
   if (!appUsers[idx]) return;
   appUsers[idx].role = newRole;
@@ -4656,28 +4787,27 @@ function adminChangeRole(idx, newRole) {
   }
 }
 
+// ── Password reset ────────────────────────────────────
 function adminShowPassReset(idx, hide=false) {
   const el = document.getElementById('passReset'+idx);
   if (el) el.style.display = hide ? 'none' : 'block';
 }
 
 function adminSavePass(idx) {
-  const inp = document.getElementById('newPass'+idx);
-  const val = inp?.value?.trim();
+  const val = document.getElementById('newPass'+idx)?.value?.trim();
   if (!val || val.length < 4) { alert('Password must be at least 4 characters.'); return; }
   appUsers[idx].password = val;
-  usersSave();
-  adminShowPassReset(idx, true);
-  const b = document.createElement('div');
-  b.style.cssText='position:fixed;top:70px;left:50%;transform:translateX(-50%);background:#1a5c3a;color:white;padding:10px 22px;border-radius:8px;font-family:"IBM Plex Mono",monospace;font-size:0.78rem;z-index:9999;';
-  b.textContent = `✅ Password updated for ${appUsers[idx].name}`;
-  document.body.appendChild(b); setTimeout(()=>b.remove(),2500);
+  if (currentUser && appUsers[idx].username === currentUser.username) currentUser.password = val;
+  usersSave().then(() => {
+    adminShowPassReset(idx, true);
+    adminToast(`✅ Password updated for ${appUsers[idx].name}`);
+  });
 }
 
+// ── Tab access ────────────────────────────────────────
 function adminPreviewTabs(role) {
-  const tabs = ROLE_DEFAULTS[role] || ['viz'];
   const el = document.getElementById('addTabsPreview');
-  if (el) el.textContent = 'Default tabs: ' + tabs.join(', ');
+  if (el) el.textContent = 'Default tabs: ' + (ROLE_DEFAULTS[role] || ['viz']).join(', ');
 }
 
 function adminToggleTab(userIdx, tabId, enabled) {
@@ -4687,7 +4817,6 @@ function adminToggleTab(userIdx, tabId, enabled) {
   else         { tabs = tabs.filter(t => t !== tabId); }
   appUsers[userIdx].tabs = tabs;
   usersSave();
-  // If editing the currently logged-in user, reapply permissions live
   if (currentUser && appUsers[userIdx].username === currentUser.username) {
     currentUser.tabs = tabs;
     applyPermissions(currentUser.role);
@@ -4701,29 +4830,45 @@ function adminResetTabs(userIdx) {
   renderAdminTable();
 }
 
+// ── Delete user ───────────────────────────────────────
 function adminDeleteUser(idx) {
   if (appUsers[idx].username === currentUser?.username) { alert('Cannot delete yourself.'); return; }
   if (!confirm(`Delete user "${appUsers[idx].name}"?`)) return;
-  appUsers.splice(idx,1);
-  usersSave();
+  const username = appUsers[idx].username;
+  appUsers.splice(idx, 1);
+  dbUserDelete(username).then(() => usersSave());
   renderAdminTable();
 }
 
+// ── Add user ──────────────────────────────────────────
 function adminAddUser() {
   const name = document.getElementById('addName').value.trim();
-  const user = document.getElementById('addUser').value.trim();
+  const user = document.getElementById('addUser').value.trim().toLowerCase();
   const pass = document.getElementById('addPass').value;
   const ward = document.getElementById('addWard').value;
   const role = document.getElementById('addRole').value;
   if (!name||!user||!pass) { alert('Please fill in Name, Username and Password.'); return; }
+  if (user.length < 3) { alert('Username must be at least 3 characters.'); return; }
+  if (!/^[a-z0-9_.-]+$/.test(user)) { alert('Username may only contain letters, numbers, _ . -'); return; }
   if (appUsers.find(u=>u.username===user)) { alert('Username already exists.'); return; }
-  const tabs = [...(ROLE_DEFAULTS[role] || ['viz'])]; // default tabs for role
+  const tabs = [...(ROLE_DEFAULTS[role] || ['viz'])];
   appUsers.push({ username:user, password:pass, name, role, ward, tabs });
-  usersSave();
-  document.getElementById('addName').value = '';
-  document.getElementById('addUser').value = '';
-  document.getElementById('addPass').value = '';
-  renderAdminTable();
+  usersSave().then(() => {
+    document.getElementById('addName').value = '';
+    document.getElementById('addUser').value = '';
+    document.getElementById('addPass').value = '';
+    renderAdminTable();
+    adminToast(`✅ User "${name}" added`);
+  });
+}
+
+// ── Toast helper ──────────────────────────────────────
+function adminToast(msg) {
+  const b = document.createElement('div');
+  b.style.cssText = 'position:fixed;top:70px;left:50%;transform:translateX(-50%);background:#1a5c3a;color:white;padding:10px 24px;border-radius:8px;font-family:"IBM Plex Mono",monospace;font-size:0.78rem;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,0.35);letter-spacing:0.03em;';
+  b.textContent = msg;
+  document.body.appendChild(b);
+  setTimeout(() => b.remove(), 2800);
 }
 
 // ── Helpers ───────────────────────────────────────────

@@ -2235,7 +2235,12 @@
     <!-- Right: Form -->
     <div class="audit-form-card" id="auditFormCard">
       <div class="afc-header">
-        <h3>Paediatric Death Review Form</h3>
+        <div>
+          <h3>Paediatric Death Review Form</h3>
+          <div id="auditEditingBanner" style="display:none;font-size:0.68rem;color:rgba(255,255,255,0.75);margin-top:3px;font-family:'IBM Plex Mono',monospace;letter-spacing:0.04em;">
+            ✏️ Editing saved record — changes will overwrite on Save
+          </div>
+        </div>
         <span class="file-no">File No: <span id="afFileNo">—</span></span>
       </div>
       <div class="afc-body">
@@ -2617,8 +2622,8 @@
 
         <!-- Save bar -->
         <div class="audit-save-bar">
-          <button class="btn btn-audit-save" onclick="auditSaveCase()">💾 Save Case</button>
-          <button class="btn btn-primary" onclick="auditGenerateForm()" style="background:linear-gradient(135deg,#1a3a5c,#1a5c3a);">📄 Generate Form</button>
+          <button class="btn btn-audit-save" id="auditSaveBtn" onclick="auditSaveCase()">💾 Save Case</button>
+          <button class="btn btn-primary" onclick="auditGenerateForm()" style="background:linear-gradient(135deg,#1a3a5c,#1a5c3a);">📄 Preview / Print</button>
           <button class="btn btn-audit-new" onclick="auditNewCase()">+ New Case</button>
           <span class="save-status" id="auditSaveStatus"></span>
         </div>
@@ -5247,9 +5252,10 @@ async function auditRenderList() {
         <div class="ci-meta">${dod} · File: ${c['af-fileno']||'—'}${(c['af-age-years']||c['af-age-months'])?` · Age: ${[c['af-age-years']?c['af-age-years']+'y':'',c['af-age-months']?c['af-age-months']+'m':'',c['af-age-days']?c['af-age-days']+'d':''].filter(Boolean).join(' ')}`  :''}</div>
       </div>
       ${badge}
-      <button class="qbtn" style="font-size:0.65rem;padding:3px 8px;flex-shrink:0;" onclick="event.stopPropagation();auditOpenCase('${(c['af-fileno']||'').replace(/'/g,"\\'")}')">✏️ Edit</button>`;
+      <button class="qbtn" style="font-size:0.65rem;padding:3px 8px;flex-shrink:0;border-color:#1a3a5c;color:#1a3a5c;" onclick="event.stopPropagation();auditShowPreview('${(c['af-fileno']||'').replace(/'/g,"\\'")}')">👁 View</button>`;
     div.style.cursor = 'pointer';
-    div.onclick = () => auditShowPreview(c['af-fileno']);
+    div.title = 'Click to edit this record';
+    div.onclick = () => auditOpenCase(c['af-fileno']);
     body.appendChild(div);
   });
 }
@@ -5280,6 +5286,18 @@ async function auditOpenCase(key) {
   simpleFields.forEach(id => { const el=document.getElementById(id); if(el) el.value=c[id]||''; });
   document.getElementById('af-age-auto').textContent = '';
   document.getElementById('afFileNo').textContent = c['af-fileno'] || '—';
+
+  // Show "editing" banner and update save button
+  const banner = document.getElementById('auditEditingBanner');
+  const saveBtn = document.getElementById('auditSaveBtn');
+  if (banner) banner.style.display = 'block';
+  if (saveBtn) {
+    saveBtn.textContent = '💾 Update Record';
+    saveBtn.style.background = '#1a5c3a';
+  }
+
+  // Scroll form into view
+  document.getElementById('auditFormCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   ['af-gender','af-readmit','af-when','af-doa','af-file','af-ccp','af-incomplete',
    'af-inadequate','af-recok','af-triage','af-referred','af-nutrition','af-avoidable'].forEach(name => {
@@ -5336,6 +5354,11 @@ function auditClearForm() {
   document.getElementById('referralDetails').style.display = 'none';
   document.getElementById('verdictCard').style.display = 'none';
   document.getElementById('auditSaveStatus').textContent = '';
+  // Reset editing state
+  const banner = document.getElementById('auditEditingBanner');
+  const saveBtn = document.getElementById('auditSaveBtn');
+  if (banner) banner.style.display = 'none';
+  if (saveBtn) { saveBtn.textContent = '💾 Save Case'; saveBtn.style.background = ''; }
   document.getElementById('modFactorsTbody').innerHTML = '';
   auditAddModFactor();
   document.getElementById('solutionsTbody').innerHTML = '';
@@ -5384,13 +5407,28 @@ async function auditSaveCase() {
     return;
   }
 
+  const isUpdate = !!auditCurrent; // was there already a saved record open?
   auditCurrent = c['af-fileno'];
   await auditDbPut(c);
   await auditRenderList();
 
   const status = document.getElementById('auditSaveStatus');
-  status.textContent = '✅ Saved to database · ' + new Date().toLocaleTimeString();
-  setTimeout(() => status.textContent = '', 3000);
+  const action = isUpdate ? '✅ Record updated' : '✅ Saved to database';
+  status.textContent = `${action} · ${new Date().toLocaleTimeString()}`;
+  setTimeout(() => status.textContent = '', 3500);
+
+  // Keep editing banner shown since the record is still open
+  const banner = document.getElementById('auditEditingBanner');
+  const saveBtn = document.getElementById('auditSaveBtn');
+  if (banner) banner.style.display = 'block';
+  if (saveBtn) { saveBtn.textContent = '💾 Update Record'; saveBtn.style.background = '#1a5c3a'; }
+
+  // Flash confirmation
+  const b = document.createElement('div');
+  b.style.cssText = 'position:fixed;top:70px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#1a3a2a,#1a5c3a);color:white;padding:12px 28px;border-radius:8px;font-family:"IBM Plex Mono",monospace;font-size:0.78rem;z-index:9000;letter-spacing:0.04em;box-shadow:0 6px 24px rgba(0,0,0,0.3);white-space:nowrap;';
+  b.textContent = `${isUpdate ? '✅ Record updated' : '✅ Saved'} — ${c['af-name'] || 'Case'} · File ${c['af-fileno']}`;
+  document.body.appendChild(b);
+  setTimeout(() => b.remove(), 3200);
 }
 
 // ── Delete case ───────────────────────────────────────

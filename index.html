@@ -2815,8 +2815,7 @@
               <tr><td><div class="map-label">Road Traffic Accident Deaths</div><div class="map-code">D8NqfiWkDD7 · code 47b</div></td><td><input type="text" value="D8NqfiWkDD7" readonly style="background:#f4f8fc;font-family:'IBM Plex Mono',monospace;font-size:0.78rem;color:#1a3a5c;"></td></tr>
               <tr><td><div class="map-label">Referrals In</div><div class="map-code">refFrom → DHIS2 · needs UID</div></td><td><input type="text" id="map-refIn" placeholder="Paste UID from DHIS2" value=""></td></tr>
               <tr><td><div class="map-label">Referrals Out</div><div class="map-code">refTo → DHIS2 · needs UID</div></td><td><input type="text" id="map-refOut" placeholder="Paste UID from DHIS2" value=""></td></tr>
-              <tr><td><div class="map-label">Women Reg. Maternity ×2 (fetch from DHIS2)</div><div class="map-code">gmoySGjVFyu · indicator · ×2 → adds to ciW6Rv4RDR5</div></td><td><input type="text" id="map-deliveries" placeholder="UID" value="gmoySGjVFyu"></td></tr>
-              <tr><td><div class="map-label">Women Reg. Maternity ×2 (fetch from DHIS2)</div><div class="map-code">gmoySGjVFyu · indicator · value ×2 → add to discharges</div></td><td><input type="text" id="map-deliveries" placeholder="UID" value="gmoySGjVFyu"></td></tr>
+              <tr><td><div class="map-label">Women Reg. Maternity ×2 (fetch from DHIS2)</div><div class="map-code">gmoySGjVFyu · indicator · ×2 → adds to inpatDays &amp; discharges</div></td><td><input type="text" id="map-deliveries" placeholder="UID" value="gmoySGjVFyu"></td></tr>
             </tbody>
           </table>
           <div style="padding:12px 14px;">
@@ -6515,7 +6514,7 @@ async function d2RecalcCombined() {
       const all=await dbGetAll();
       let recs=all.filter(p=>p.year===year&&p.month===month);
       if(ward!=='all')recs=recs.filter(p=>p.ward===ward);
-      wardDischarges =recs.reduce((s,p)=>s+(p.totalDiseaseAdm||0),0);
+      wardDischarges =recs.reduce((s,p)=>s+(p.totalAdm||0),0);
       wardAdm        =recs.reduce((s,p)=>s+(p.totalAdm||0),0);
       wardInpatDays  =recs.reduce((s,p)=>s+(p.inpatDays||0),0);
       wardDeaths     =recs.reduce((s,p)=>s+(p.deaths||0),0);
@@ -6605,9 +6604,16 @@ async function d2Push() {
   const month=document.getElementById('d2Month')?.value||'December';
   const year=parseInt(document.getElementById('d2Year')?.value)||2025;
   const period=d2PeriodStr(), map=d2GetMapping();
+  const pushBtn=document.getElementById('d2PushBtn');
   const calc=await d2RecalcCombined();
   let recs=[];
   try{if(typeof dbGetAll==='function'){const all=await dbGetAll();recs=all.filter(p=>p.year===year&&p.month===month);if(ward!=='all')recs=recs.filter(p=>p.ward===ward);}}catch(e){}
+  if(!recs.length){
+    d2Log('err',`⚠️ No submitted data found for ${month} ${year}${ward!=='all'?' · '+ward:''}. Go to the Data Entry tab, fill in the worksheet and click "Submit & Save Period" first.`);
+    d2SetStatus('disconnected',`No data for ${month} ${year} — submit from Data Entry tab first.`);
+    if(pushBtn){pushBtn.disabled=false;pushBtn.textContent='📤 Push to DHIS2';}
+    return;
+  }
   const refIn=recs.reduce((s,p)=>s+(p.refFrom||0),0);
   const refOut=recs.reduce((s,p)=>s+(p.refTo||0),0);
   // ── Disease-specific deaths ────────────────────────────────────────────────
@@ -6676,7 +6682,6 @@ async function d2Push() {
   dataValues.forEach(d=>d2Log('info',`  → ${d.dataElement} = ${d.value} (${d.label})`.slice(0,120)));
   d2SetStatus('syncing',`Pushing ${dataValues.length} data values to DHIS2…`);
   document.querySelectorAll('.sync-status.pending').forEach(el=>{el.textContent='sending…';el.style.background='#dbeafe';el.style.color='#1256a0';});
-  const pushBtn=document.getElementById('d2PushBtn');
   if(pushBtn){pushBtn.disabled=true;pushBtn.textContent='⏳ Pushing…';}
   const proxyUrl = (document.getElementById('d2ProxyUrl')?.value||'').replace(/\/+$/,'');
   if(!proxyUrl){ d2Log('err','Proxy URL not set. Follow the Setup Guide.'); if(pushBtn){pushBtn.disabled=false;pushBtn.textContent='📤 Push to DHIS2';} return; }
@@ -6700,7 +6705,17 @@ async function d2Push() {
     d2Log('info', `DHIS2 raw response: ${JSON.stringify(json).slice(0,500)}`);
     if (json.importCount) {
       d2Log('info', `importCount: imported=${json.importCount.imported} updated=${json.importCount.updated} ignored=${json.importCount.ignored} deleted=${json.importCount.deleted}`);
-      if (json.importCount.ignored > 0) {
+      if (json.importCount.ignored > 0 && json.importCount.imported === 0 && json.importCount.updated === 0) {
+        const msg = `DHIS2 ignored ALL ${json.importCount.ignored} value(s) — nothing was saved. Common causes: locked period, wrong dataset UID (q1Es3k3sZem), wrong orgUnit (HN3xPrwEli4), wrong categoryOptionCombo, or data element not in dataset. Check conflicts in log.`;
+        d2Log('err', msg);
+        if (json.conflicts?.length) {
+          json.conflicts.forEach(c => d2Log('warn', `DHIS2 conflict: ${c.object||c.errorCode||'?'} — ${c.value||c.message||JSON.stringify(c)}`));
+        }
+        d2SetStatus('disconnected', `⚠️ Push ignored by DHIS2 — ${json.importCount.ignored} values not saved. Check log.`);
+        document.querySelectorAll('.sync-status').forEach(el=>{if(el.textContent==='sending…'){el.textContent='ignored';el.className='sync-status error';}});
+        if(pushBtn){pushBtn.disabled=false;pushBtn.textContent='📤 Push to DHIS2';}
+        return;
+      } else if (json.importCount.ignored > 0) {
         d2Log('warn', `⚠️ DHIS2 ignored ${json.importCount.ignored} value(s) — check conflicts below`);
       }
     }

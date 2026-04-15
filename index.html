@@ -6649,11 +6649,11 @@ async function d2Push() {
   const COC      = 'Tt7fU5lUhAU'; // default COC for all other fields
   const COC_MAL5  = 'pE37AYgl7bx'; // NMCP Age <5Yrs  — SWNS8rDyb14.pE37AYgl7bx
   const COC_MALO5 = 'V8ASMfxytS4'; // NMCP Age >5Yrs  — SWNS8rDyb14.V8ASMfxytS4
-  const AOC      = 'HllvX50cXC0'; // default attributeOptionCombo
+  // Note: attributeOptionCombo is intentionally omitted — DHIS2 will use the default
+  // for this dataset/orgUnit. Sending HllvX50cXC0 caused "not accessible" rejections.
   const dv = (de, value, label, coc) => ({
     dataElement: de,
     categoryOptionCombo: coc || COC,
-    attributeOptionCombo: AOC,
     value,
     label
   });

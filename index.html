@@ -2650,7 +2650,7 @@
   <div class="roster-header">
     <div>
       <h2 class="roster-title">📅 2026 OPD Weekend & Holiday Duty Roster</h2>
-      <p class="roster-sub">Machinga District Hospital — Under 5 &amp; Over 5 On-Call Schedule</p>
+      <p class="roster-sub">Machinga District Hospital — Under 5 &amp; Over 5 On-Call Schedule · Jan–Aug 2026</p>
     </div>
     <button class="roster-add-btn" onclick="openRosterModal()">+ Add Entry</button>
   </div>
@@ -5799,12 +5799,13 @@ async function auditExportCSV() {
 // SATURDAY DUTY ROSTER
 // ══════════════════════════════════════════════════════
 
-const ROSTER_KEY = 'ww_duty_roster_v2';
+const ROSTER_KEY = 'ww_duty_roster_v3';
 let rosterEntries = [];
 let rosterEditId  = null;
 
 // ── Seed data from the 2026 OPD Excel roster ──────────
 const ROSTER_SEED = [
+  // ── Jan–Apr 2026 (original entries) ──────────────────────
   { id:'r01', date:'2026-01-10', under5:'Happy',    over5:'Bernard'  },
   { id:'r02', date:'2026-01-15', under5:'Grace',    over5:'Mervin'   },
   { id:'r03', date:'2026-01-17', under5:'Tawanda',  over5:'Martha'   },
@@ -5824,6 +5825,26 @@ const ROSTER_SEED = [
   { id:'r17', date:'2026-04-11', under5:'Blessings',over5:'Happy'    },
   { id:'r18', date:'2026-04-18', under5:'Bernard',  over5:'Grace'    },
   { id:'r19', date:'2026-04-25', under5:'Mervin',   over5:'Martha'   },
+  // ── May–Aug 2026 (from uploaded spreadsheet) ─────────────
+  { id:'r20', date:'2026-05-02', under5:'Happy',    over5:'Bernard'  },
+  { id:'r21', date:'2026-05-09', under5:'Grace',    over5:'Mervin'   },
+  { id:'r22', date:'2026-05-16', under5:'Tawanda',  over5:'Martha'   },
+  { id:'r23', date:'2026-05-23', under5:'Bernard',  over5:'Happy'    },
+  { id:'r24', date:'2026-05-30', under5:'Mervin',   over5:'Grace'    },
+  { id:'r25', date:'2026-06-06', under5:'Martha',   over5:'Tawanda'  },
+  { id:'r26', date:'2026-06-13', under5:'Aaron',    over5:'Happy'    },
+  { id:'r27', date:'2026-06-20', under5:'Bernard',  over5:'Grace'    },
+  { id:'r28', date:'2026-06-27', under5:'Mervin',   over5:'Tawanda'  },
+  { id:'r29', date:'2026-07-04', under5:'Martha',   over5:'Bernard'  },
+  { id:'r30', date:'2026-07-06', under5:'Happy',    over5:'Mervin'   },
+  { id:'r31', date:'2026-07-11', under5:'Rachel',   over5:'Martha'   },
+  { id:'r32', date:'2026-07-18', under5:'Tawanda',  over5:'Blessings'},
+  { id:'r33', date:'2026-07-25', under5:'Happy',    over5:'Bernard'  },
+  { id:'r34', date:'2026-08-01', under5:'Rachel',   over5:'Mervin'   },
+  { id:'r35', date:'2026-08-08', under5:'Martha',   over5:'Tawanda'  },
+  { id:'r36', date:'2026-08-15', under5:'Blessings',over5:'Happy'    },
+  { id:'r37', date:'2026-08-22', under5:'Bernard',  over5:'Grace'    },
+  { id:'r38', date:'2026-08-29', under5:'Mervin',   over5:'Martha'   },
 ];
 
 function rosterLoad() {

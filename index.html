@@ -5871,8 +5871,10 @@ const ROSTER_SEED = [
   { id:'r18', date:'2026-04-18', under5:'Bernard',  over5:'Grace'    },
   { id:'r19', date:'2026-04-25', under5:'Mervin',   over5:'Martha'   },
   // ── May–Aug 2026 (from uploaded spreadsheet) ─────────────
-  { id:'r20', date:'2026-05-02', under5:'Happy',    over5:'Bernard'  },
+  { id:'r20', date:'2026-05-01', under5:'Happy',    over5:'Bernard'  },
+  { id:'r20b',date:'2026-05-02', under5:'Happy',    over5:'Bernard'  },
   { id:'r21', date:'2026-05-09', under5:'Grace',    over5:'Mervin'   },
+  { id:'r21b',date:'2026-05-14', under5:'Grace',    over5:'Mervin'   },
   { id:'r22', date:'2026-05-16', under5:'Tawanda',  over5:'Martha'   },
   { id:'r23', date:'2026-05-23', under5:'Bernard',  over5:'Happy'    },
   { id:'r24', date:'2026-05-30', under5:'Mervin',   over5:'Grace'    },
@@ -5897,10 +5899,23 @@ function rosterLoad() {
     const raw = localStorage.getItem(ROSTER_KEY);
     rosterEntries = raw ? JSON.parse(raw) : [];
   } catch(e) { rosterEntries = []; }
-  // Seed from Excel if empty or if seed has more entries
+  // Seed from Excel if empty, OR merge any new seed entries not yet in localStorage
   if (!rosterEntries.length) {
     rosterEntries = ROSTER_SEED.map(e => ({...e, notes:''}));
     rosterSave();
+  } else {
+    // Merge any seed entries whose id is not already present
+    let changed = false;
+    ROSTER_SEED.forEach(seedEntry => {
+      if (!rosterEntries.find(e => e.id === seedEntry.id)) {
+        rosterEntries.push({...seedEntry, notes:''});
+        changed = true;
+      }
+    });
+    if (changed) {
+      rosterEntries.sort((a,b) => a.date.localeCompare(b.date));
+      rosterSave();
+    }
   }
 }
 

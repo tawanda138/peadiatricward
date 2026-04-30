@@ -210,122 +210,170 @@
   tfoot td { padding: 7px 5px; font-family: 'IBM Plex Mono', monospace; font-weight: 600; font-size: 0.8rem; border-color: #333; color: white; }
   tfoot td.monthly-label { text-align: left; padding-left: 10px; letter-spacing: 0.06em; font-size: 0.68rem; }
 
-  /* ── Dashboard filter bar ── */
-  .dash-filter-bar {
-    background: white; border-radius: 12px; padding: 14px 20px;
-    display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
-    margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.07);
-    border: 1px solid #e8f0fe;
+  /* ── Dashboard (restyled to match reference screenshots) ── */
+  #vizPage { background: #f3f5f8; min-height: 100vh; }
+  .viz-container { max-width: 1400px; margin: 0 auto; padding: 28px 28px 60px; }
+
+  /* Title row: breadcrumb + period pills + dropdowns on the right */
+  .viz-page-title {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 20px; flex-wrap: wrap; margin-bottom: 22px;
+    font-family: 'IBM Plex Sans', sans-serif;
   }
-  .dash-filter-group { display: flex; flex-direction: column; gap: 5px; }
-  .dash-filter-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; color: #94a3b8; }
+  .viz-title-left { display: flex; flex-direction: column; gap: 4px; }
+  .viz-crumb {
+    font-size: 0.78rem; color: #94a3b8; font-weight: 500;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .viz-crumb .viz-crumb-link { color: #2563eb; font-weight: 600; }
+  .viz-crumb .viz-crumb-sep { color: #cbd5e1; }
+  .viz-title-main { font-size: 1.55rem; font-weight: 700; color: #0f172a; letter-spacing: -0.01em; }
+
+  /* Filter bar — pills + dropdowns, transparent background */
+  .dash-filter-bar {
+    background: transparent; border: none; box-shadow: none; padding: 0;
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    margin: 0;
+  }
+  .dash-filter-group { display: flex; align-items: center; gap: 6px; }
+  .dash-filter-label { display: none; }
+  .dash-filter-tabs {
+    display: inline-flex; background: white; border: 1px solid #e5e7eb;
+    border-radius: 999px; padding: 4px; gap: 2px;
+    box-shadow: 0 1px 2px rgba(15,23,42,0.04);
+  }
+  .dft {
+    padding: 7px 18px; border: none; border-radius: 999px; font-size: 0.82rem;
+    font-family: 'IBM Plex Sans', sans-serif; cursor: pointer; background: transparent;
+    color: #475569; transition: all 0.15s; font-weight: 500;
+  }
+  .dft:hover { color: #0f172a; }
+  .dft.active { background: #0f172a; color: white; font-weight: 600; box-shadow: 0 2px 6px rgba(15,23,42,0.18); }
+
   .dash-filter-group select {
-    border: 1.5px solid #e2e8f0; border-radius: 7px; padding: 7px 12px;
-    font-family: 'IBM Plex Sans', sans-serif; font-size: 0.82rem; color: #1e293b;
-    background: #f8fafc; cursor: pointer; min-width: 130px;
+    appearance: none; -webkit-appearance: none;
+    border: 1px solid #e5e7eb; border-radius: 999px; padding: 8px 36px 8px 16px;
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 0.82rem; color: #0f172a; font-weight: 500;
+    background-color: white;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+    background-repeat: no-repeat; background-position: right 12px center;
+    cursor: pointer; min-width: 130px;
+    box-shadow: 0 1px 2px rgba(15,23,42,0.04);
     transition: border-color 0.15s;
   }
-  .dash-filter-group select:focus { outline: none; border-color: #2979ff; }
-  .dash-filter-tabs { display: flex; background: #f1f5f9; border-radius: 8px; padding: 3px; gap: 2px; }
-  .dft {
-    padding: 6px 14px; border: none; border-radius: 6px; font-size: 0.78rem;
-    font-family: 'IBM Plex Sans', sans-serif; cursor: pointer; background: none;
-    color: #64748b; transition: all 0.15s; font-weight: 500;
-  }
-  .dft.active { background: white; color: #2979ff; box-shadow: 0 1px 6px rgba(0,0,0,0.1); font-weight: 700; }
-  .dash-filter-info { margin-left: auto; display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
-  .dfi-period { font-weight: 700; font-size: 0.88rem; color: #1e293b; }
-  .dfi-records { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; color: #94a3b8; }
-  .dash-no-data {
-    background: white; border-radius: 14px; padding: 60px 30px;
-    text-align: center; box-shadow: 0 2px 12px rgba(0,0,0,0.07);
-    margin-bottom: 18px;
-  }
-  .dash-no-data h3 { font-size: 1.1rem; color: #334155; margin-bottom: 10px; }
-  .dash-no-data p  { font-size: 0.82rem; color: #94a3b8; }
+  .dash-filter-group select:focus { outline: none; border-color: #2563eb; }
 
-  /* ── VIZ PAGE ── */
-  #vizPage { background: #f0f4f8; min-height: 100vh; }
-  .viz-container { max-width: 1400px; margin: 0 auto; padding: 26px 20px 60px; }
-  .viz-page-title { font-family: 'IBM Plex Sans', sans-serif; color: #1a2a3a; font-size: 1.3rem; font-weight: 700; letter-spacing: 0.01em; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
-  .viz-page-title .sub { font-size: 0.75rem; color: #8a9fae; font-weight: 400; font-family: 'IBM Plex Mono', monospace; }
+  .dash-filter-info {
+    width: 100%; display: flex; justify-content: flex-end; gap: 12px;
+    margin-top: -4px; margin-bottom: 4px;
+  }
+  .dfi-period  { font-weight: 600; font-size: 0.78rem; color: #475569; }
+  .dfi-records { font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; color: #94a3b8; }
 
-  /* KPI Cards */
-  .kpi-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 28px; }
-  .kpi { border-radius: 18px; padding: 26px 24px 22px; position: relative; overflow: hidden; cursor: default; box-shadow: 0 6px 24px rgba(0,0,0,0.13); transition: transform 0.18s, box-shadow 0.18s; min-height: 130px; display: flex; flex-direction: column; justify-content: space-between; }
-  .kpi:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.18); }
-  .kpi-label { font-family: 'IBM Plex Sans', sans-serif; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.88); margin-bottom: 8px; position: relative; z-index: 1; }
-  .kpi-value { font-family: 'IBM Plex Sans', sans-serif; font-size: 3rem; font-weight: 800; line-height: 1; color: white; position: relative; z-index: 1; }
-  .kpi-sub { font-size: 0.65rem; color: rgba(255,255,255,0.65); margin-top: 6px; position: relative; z-index: 1; }
-  .kpi::after { content: attr(data-icon); font-size: 7rem; line-height: 1; position: absolute; right: -8px; bottom: -12px; opacity: 0.18; z-index: 0; pointer-events: none; }
-  .kpi.blue   { background: linear-gradient(135deg, #2979ff, #1565c0); }
-  .kpi.red    { background: linear-gradient(135deg, #f44336, #b71c1c); }
-  .kpi.purple { background: linear-gradient(135deg, #7c3aed, #4c1d95); }
-  .kpi.orange { background: linear-gradient(135deg, #f59e0b, #b45309); }
-  .kpi.green  { background: linear-gradient(135deg, #10b981, #065f46); }
-  .kpi.teal   { background: linear-gradient(135deg, #06b6d4, #0e7490); }
+  /* KPI cards — white surface, dark numerals, trend chip */
+  .kpi-strip {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px; margin-bottom: 22px;
+  }
+  .kpi {
+    background: white; border: 1px solid #e8ebf0; border-radius: 16px;
+    padding: 22px 22px 20px; min-height: 130px;
+    display: flex; flex-direction: column; justify-content: space-between;
+    box-shadow: 0 1px 2px rgba(15,23,42,0.03);
+    transition: transform 0.18s, box-shadow 0.18s;
+    position: relative; overflow: hidden;
+  }
+  .kpi::after {
+    content: '⋮'; position: absolute; top: 14px; right: 18px;
+    color: #cbd5e1; font-size: 1.1rem; line-height: 1;
+  }
+  .kpi:hover { box-shadow: 0 6px 20px rgba(15,23,42,0.06); }
+  .kpi-label {
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 0.72rem;
+    font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+    color: #64748b; margin-bottom: 14px;
+  }
+  .kpi-value {
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 2.6rem; font-weight: 700;
+    line-height: 1; color: #0f172a; letter-spacing: -0.02em;
+    display: inline-flex; align-items: baseline; gap: 10px;
+  }
+  .kpi-sub { font-size: 0.72rem; color: #94a3b8; margin-top: 10px; font-weight: 400; }
+  /* neutralize the legacy color variants — all KPI cards are now white */
+  .kpi.blue, .kpi.red, .kpi.purple, .kpi.orange, .kpi.green, .kpi.teal { background: white; }
 
   /* Chart cards */
   .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 18px; }
   .charts-grid.wide { grid-template-columns: 1fr; }
-  .chart-card { background: white; border: none; border-radius: 14px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.07); transition: box-shadow 0.18s; }
-  .chart-card:hover { box-shadow: 0 6px 24px rgba(0,0,0,0.12); }
-  .chart-card-header { padding: 16px 20px 12px; border-bottom: 1px solid #f0f4f8; display: flex; align-items: center; justify-content: space-between; }
-  .chart-card-header h3 { font-family: 'IBM Plex Sans', sans-serif; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: #334155; }
-  .chart-card-header .badge { font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; font-weight: 700; color: white; background: #2979ff; border-radius: 20px; padding: 2px 10px; }
-  .age-legend { display: flex; gap: 14px; padding: 8px 20px 10px; }
-  .age-legend-item { display: flex; align-items: center; gap: 5px; font-size: 0.68rem; font-family: 'IBM Plex Sans', sans-serif; color: #64748b; }
-  .age-dot { width: 9px; height: 9px; border-radius: 2px; }
-  .chart-body { padding: 14px 18px 18px; }
-  .chart-body canvas { max-height: 300px; }
-  .chart-body.tall canvas { max-height: 420px; }
+  .chart-card {
+    background: white; border: 1px solid #e8ebf0; border-radius: 16px;
+    overflow: hidden; box-shadow: 0 1px 2px rgba(15,23,42,0.03);
+    transition: box-shadow 0.18s;
+  }
+  .chart-card:hover { box-shadow: 0 6px 20px rgba(15,23,42,0.06); }
+  .chart-card-header {
+    padding: 20px 24px 8px; border-bottom: none;
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+  }
+  .chart-card-header h3 {
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 1.05rem;
+    font-weight: 700; letter-spacing: -0.01em; text-transform: none;
+    color: #0f172a; line-height: 1.3;
+  }
+  .chart-card-header h3::before {
+    content: attr(data-eyebrow); display: block;
+    font-size: 0.66rem; font-weight: 600; letter-spacing: 0.12em;
+    text-transform: uppercase; color: #94a3b8; margin-bottom: 6px;
+  }
+  .chart-card-header .badge {
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 0.7rem;
+    font-weight: 600; color: #2563eb; background: #eff4ff;
+    border-radius: 999px; padding: 4px 12px; letter-spacing: 0.04em;
+    text-transform: uppercase; white-space: nowrap;
+  }
+  .chart-body { padding: 8px 22px 22px; }
+  .chart-body canvas { max-height: 320px; }
+  .chart-body.tall canvas { max-height: 440px; }
 
-  /* Breakdown table */
+  /* Tables */
   .breakdown-table { width: 100%; border-collapse: collapse; }
-  .breakdown-table th { font-family: 'IBM Plex Sans', sans-serif; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: white; background: #334155; padding: 10px 12px; text-align: left; }
-  .breakdown-table td { padding: 9px 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.8rem; color: #334155; }
+  .breakdown-table th {
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 0.62rem;
+    font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+    color: #64748b; background: #f8fafc; padding: 12px 14px; text-align: left;
+    border-bottom: 1px solid #e8ebf0;
+  }
+  .breakdown-table td { padding: 11px 14px; border-bottom: 1px solid #f1f5f9; font-size: 0.82rem; color: #1e293b; }
   .breakdown-table tr:last-child td { border-bottom: none; }
-  .breakdown-table tr:nth-child(even) td { background: #f8fafc; }
-  .breakdown-table tr:hover td { background: #eff6ff; }
-  .rank-cell { font-family: 'IBM Plex Mono', monospace; color: #94a3b8; font-size: 0.68rem; }
-  .bar-cell { width: 100px; }
-  .mini-bg { background: #e2e8f0; border-radius: 3px; height: 5px; overflow: hidden; margin-bottom: 2px; }
-  .mini-fill { height: 5px; border-radius: 3px; }
-  .pct { font-size: 0.6rem; color: #94a3b8; font-family: 'IBM Plex Mono', monospace; }
+  .breakdown-table tr:hover td { background: #f8fafc; }
 
-  /* Top Disease Rankings */
+  /* Ranked lists */
   .ranked-list { display: flex; flex-direction: column; gap: 0; }
-  .ranked-item { display: flex; align-items: center; gap: 12px; padding: 12px 18px; border-bottom: 1px solid #f1f5f9; transition: background 0.12s; position: relative; }
+  .ranked-item { display: flex; align-items: center; gap: 12px; padding: 12px 22px; border-bottom: 1px solid #f1f5f9; transition: background 0.12s; position: relative; }
   .ranked-item:last-child { border-bottom: none; }
   .ranked-item:hover { background: #f8fafc; }
-  .ranked-item.rank-1 { background: rgba(255,215,0,0.06); }
-  .ranked-item.rank-2 { background: rgba(192,192,192,0.05); }
-  .ranked-item.rank-3 { background: rgba(205,127,50,0.05); }
-  .rank-medal { font-size: 1.1rem; width: 24px; text-align: center; flex-shrink: 0; }
-  .rank-num { font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; color: #94a3b8; width: 20px; text-align: center; flex-shrink: 0; font-weight: 700; }
-  .rank-disease { flex: 1; min-width: 0; }
-  .rank-disease-name { font-size: 0.82rem; color: #1e293b; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .rank-disease-sub { font-size: 0.65rem; color: #64748b; margin-top: 3px; font-family: 'IBM Plex Mono', monospace; display: flex; gap: 10px; flex-wrap: wrap; }
-  .rank-disease-sub .age-u5 { color: #10b981; }
-  .rank-disease-sub .age-o5 { color: #2979ff; }
-  .rank-disease-sub .cfr { color: #f59e0b; }
-  .rank-bar-wrap { width: 120px; flex-shrink: 0; }
-  .rank-bar-bg { background: #e2e8f0; border-radius: 4px; height: 6px; overflow: hidden; margin-bottom: 3px; }
-  .rank-bar-fill { height: 6px; border-radius: 4px; transition: width 0.6s ease; }
-  .rank-bar-pct { font-size: 0.6rem; color: #94a3b8; font-family: 'IBM Plex Mono', monospace; text-align: right; }
-  .rank-value { font-family: 'IBM Plex Mono', monospace; font-size: 1.05rem; font-weight: 700; width: 46px; text-align: right; flex-shrink: 0; }
-  .rank-value.admissions { color: #2979ff; }
-  .rank-value.deaths { color: #f44336; }
-  .ranked-header { display: flex; align-items: center; gap: 12px; padding: 8px 18px; border-bottom: 1px solid #f1f5f9; background: #f8fafc; }
-  .ranked-header span { font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; letter-spacing: 0.07em; text-transform: uppercase; color: #94a3b8; }
+  .ranked-item.rank-1 { background: rgba(255,215,0,0.05); }
+  .ranked-item.rank-2 { background: rgba(192,192,192,0.04); }
+  .ranked-item.rank-3 { background: rgba(205,127,50,0.04); }
+  .ranked-header { display: flex; align-items: center; gap: 12px; padding: 10px 22px; border-bottom: 1px solid #f1f5f9; background: #f8fafc; }
+  .ranked-header span { font-family: 'IBM Plex Sans', sans-serif; font-size: 0.62rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #64748b; }
   .ranked-header .rh-disease { flex: 1; }
   .ranked-header .rh-bar { width: 120px; }
   .ranked-header .rh-val { width: 46px; text-align: right; }
 
-  @media (max-width: 760px) {
+  .dash-no-data {
+    background: white; border: 1px solid #e8ebf0; border-radius: 16px;
+    padding: 60px 30px; text-align: center; margin-bottom: 18px;
+    box-shadow: 0 1px 2px rgba(15,23,42,0.03);
+  }
+  .dash-no-data h3 { font-size: 1.1rem; color: #0f172a; margin-bottom: 10px; }
+  .dash-no-data p  { font-size: 0.82rem; color: #94a3b8; }
+
+  @media (max-width: 768px) {
     .charts-grid { grid-template-columns: 1fr; }
     .kpi-strip { grid-template-columns: 1fr 1fr; }
-    .kpi-value { font-size: 2.2rem; }
+    .kpi-value { font-size: 2rem; }
+    .viz-container { padding: 20px 16px 60px; }
   }
   @media print {
     .app-header .header-right { display: none; }
@@ -1885,64 +1933,61 @@
 <div id="vizPage" class="page">
   <div class="viz-container">
     <div class="viz-page-title">
-      <span style="background:linear-gradient(135deg,#2979ff,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">📊 Analytics Dashboard</span>
-      <span class="sub" id="vizSub">— No data yet</span>
-    </div>
+      <div class="viz-title-left">
+        <div class="viz-crumb">
+          <span>Analytics Dashboard</span>
+          <span class="viz-crumb-sep">—</span>
+          <span class="viz-crumb-link" id="vizSub">No data yet</span>
+        </div>
+        <div class="viz-title-main">Executive Summary</div>
+      </div>
 
-    <!-- Dashboard Filter Bar -->
-    <div class="dash-filter-bar" id="dashFilterBar">
-      <div class="dash-filter-group">
-        <label class="dash-filter-label">📅 Filter by</label>
-        <div class="dash-filter-tabs" id="dashFilterMode">
-          <button class="dft active" data-mode="month"   onclick="dashSetMode('month')">Month</button>
-          <button class="dft"        data-mode="quarter" onclick="dashSetMode('quarter')">Quarter</button>
-          <button class="dft"        data-mode="year"    onclick="dashSetMode('year')">Year</button>
-          <button class="dft"        data-mode="all"     onclick="dashSetMode('all')">All Time</button>
+      <!-- Dashboard Filter Bar -->
+      <div class="dash-filter-bar" id="dashFilterBar">
+        <div class="dash-filter-group">
+          <div class="dash-filter-tabs" id="dashFilterMode">
+            <button class="dft active" data-mode="month"   onclick="dashSetMode('month')">Month</button>
+            <button class="dft"        data-mode="quarter" onclick="dashSetMode('quarter')">Quarter</button>
+            <button class="dft"        data-mode="year"    onclick="dashSetMode('year')">Year</button>
+            <button class="dft"        data-mode="all"     onclick="dashSetMode('all')">All Time</button>
+          </div>
+        </div>
+
+        <div class="dash-filter-group" id="dfgMonth">
+          <select id="dfMonth" onchange="buildDashboard()">
+            <option>January</option><option>February</option><option>March</option>
+            <option>April</option><option>May</option><option>June</option>
+            <option>July</option><option>August</option><option>September</option>
+            <option>October</option><option>November</option><option>December</option>
+          </select>
+        </div>
+
+        <div class="dash-filter-group" id="dfgQuarter" style="display:none">
+          <select id="dfQuarter" onchange="buildDashboard()">
+            <option value="Q1">Q1 (Jan–Mar)</option>
+            <option value="Q2">Q2 (Apr–Jun)</option>
+            <option value="Q3">Q3 (Jul–Sep)</option>
+            <option value="Q4">Q4 (Oct–Dec)</option>
+          </select>
+        </div>
+
+        <div class="dash-filter-group" id="dfgYear">
+          <select id="dfYear" onchange="buildDashboard()"></select>
+        </div>
+
+        <div class="dash-filter-group">
+          <select id="dfWard" onchange="buildDashboard()">
+            <option value="all">All Wards</option>
+            <option>Female Ward</option><option>Male Ward</option>
+            <option>Paediatric Ward</option><option>Maternity Ward</option><option>Surgical Ward</option>
+          </select>
         </div>
       </div>
+    </div>
 
-      <!-- Month picker -->
-      <div class="dash-filter-group" id="dfgMonth">
-        <label class="dash-filter-label">Month</label>
-        <select id="dfMonth" onchange="buildDashboard()">
-          <option>January</option><option>February</option><option>March</option>
-          <option>April</option><option>May</option><option>June</option>
-          <option>July</option><option>August</option><option>September</option>
-          <option>October</option><option>November</option><option>December</option>
-        </select>
-      </div>
-
-      <!-- Quarter picker -->
-      <div class="dash-filter-group" id="dfgQuarter" style="display:none">
-        <label class="dash-filter-label">Quarter</label>
-        <select id="dfQuarter" onchange="buildDashboard()">
-          <option value="Q1">Q1 (Jan–Mar)</option>
-          <option value="Q2">Q2 (Apr–Jun)</option>
-          <option value="Q3">Q3 (Jul–Sep)</option>
-          <option value="Q4">Q4 (Oct–Dec)</option>
-        </select>
-      </div>
-
-      <!-- Year picker -->
-      <div class="dash-filter-group" id="dfgYear">
-        <label class="dash-filter-label">Year</label>
-        <select id="dfYear" onchange="buildDashboard()"></select>
-      </div>
-
-      <!-- Ward filter -->
-      <div class="dash-filter-group">
-        <label class="dash-filter-label">Ward</label>
-        <select id="dfWard" onchange="buildDashboard()">
-          <option value="all">All Wards</option>
-          <option>Female Ward</option><option>Male Ward</option>
-          <option>Paediatric Ward</option><option>Maternity Ward</option><option>Surgical Ward</option>
-        </select>
-      </div>
-
-      <div class="dash-filter-info" id="dashFilterInfo">
-        <span class="dfi-period" id="dfiPeriod">—</span>
-        <span class="dfi-records" id="dfiRecords">0 records</span>
-      </div>
+    <div class="dash-filter-info" id="dashFilterInfo">
+      <span class="dfi-period" id="dfiPeriod">—</span>
+      <span class="dfi-records" id="dfiRecords">0 records</span>
     </div>
 
     <!-- KPI Strip -->
@@ -1953,13 +1998,13 @@
       <div class="kpi green"  data-icon="🛏"><div class="kpi-label">Inpatient Days</div><div class="kpi-value" id="kInpatDays">—</div><div class="kpi-sub" id="kInpatSub">total bed-days</div></div>
       <div class="kpi orange" data-icon="🚶"><div class="kpi-label">Abscondees</div><div class="kpi-value" id="kAbs">—</div><div class="kpi-sub">left without discharge</div></div>
       <div class="kpi teal"   data-icon="🚑"><div class="kpi-label">Referrals In</div><div class="kpi-value" id="kRefIn">—</div><div class="kpi-sub">from health centres</div></div>
-      <div class="kpi blue"   data-icon="➕" style="background:linear-gradient(135deg,#0891b2,#0e7490);"><div class="kpi-label">Referrals Out</div><div class="kpi-value" id="kRefOut">—</div><div class="kpi-sub">to central hospitals</div></div>
+      <div class="kpi blue"   data-icon="➕"><div class="kpi-label">Referrals Out</div><div class="kpi-value" id="kRefOut">—</div><div class="kpi-sub">to central hospitals</div></div>
     </div>
 
     <!-- Row 1: Monthly overview bar -->
     <div class="charts-grid wide">
       <div class="chart-card">
-        <div class="chart-card-header"><h3>Monthly Overview — Admissions · Referrals · Deaths · Abscondees</h3></div>
+        <div class="chart-card-header"><h3 data-eyebrow="Trend · Monthly">Monthly Overview — Admissions · Referrals · Deaths · Abscondees</h3></div>
         <div class="chart-body"><canvas id="cOverview"></canvas></div>
       </div>
     </div>
@@ -1967,11 +2012,11 @@
     <!-- Row 2: Top 10 charts -->
     <div class="charts-grid">
       <div class="chart-card">
-        <div class="chart-card-header"><h3>Top 10 by Admissions</h3><span class="badge" id="bTop10D">—</span></div>
+        <div class="chart-card-header"><h3 data-eyebrow="Top 10 · Admissions">Leading causes of admission</h3><span class="badge" id="bTop10D">—</span></div>
         <div class="chart-body tall"><canvas id="cTop10D"></canvas></div>
       </div>
       <div class="chart-card">
-        <div class="chart-card-header"><h3>Top 10 by Deaths</h3><span class="badge" id="bTop10DT">—</span></div>
+        <div class="chart-card-header"><h3 data-eyebrow="Top 10 · Deaths">Leading causes of death</h3><span class="badge" id="bTop10DT">—</span></div>
         <div class="chart-body tall"><canvas id="cTop10DT"></canvas></div>
       </div>
     </div>
@@ -1979,11 +2024,11 @@
     <!-- Row 3: Age breakdown donuts -->
     <div class="charts-grid">
       <div class="chart-card">
-        <div class="chart-card-header"><h3>Age Breakdown — Admissions</h3><span class="badge" id="bAgeDisch">0</span></div>
+        <div class="chart-card-header"><h3 data-eyebrow="Age Breakdown — Admissions">Admissions total distribution</h3><span class="badge" id="bAgeDisch">0</span></div>
         <div class="chart-body"><canvas id="cAgeDisch"></canvas></div>
       </div>
       <div class="chart-card">
-        <div class="chart-card-header"><h3>Age Breakdown — Deaths</h3><span class="badge" id="bAgeDeaths">0</span></div>
+        <div class="chart-card-header"><h3 data-eyebrow="Age Breakdown — Deaths">Mortality total distribution</h3><span class="badge" id="bAgeDeaths">0</span></div>
         <div class="chart-body"><canvas id="cAgeDeaths"></canvas></div>
       </div>
     </div>
@@ -1992,7 +2037,7 @@
     <div class="charts-grid">
       <div class="chart-card">
         <div class="chart-card-header">
-          <h3>🏆 Top Admissions by Disease</h3>
+          <h3 data-eyebrow="Ranked · Admissions">Top admissions by disease</h3>
           <span class="badge" id="bTopAdm">—</span>
         </div>
         <div class="ranked-header">
@@ -2006,7 +2051,7 @@
       </div>
       <div class="chart-card">
         <div class="chart-card-header">
-          <h3>💀 Top Mortality by Disease</h3>
+          <h3 data-eyebrow="Ranked · Mortality">Top mortality by disease</h3>
           <span class="badge" id="bTopMort">—</span>
         </div>
         <div class="ranked-header">
@@ -2023,7 +2068,7 @@
     <!-- Row 5: Full breakdown table -->
     <div class="charts-grid wide">
       <div class="chart-card">
-        <div class="chart-card-header"><h3>Full Disease Breakdown — Under 5 vs 5 and Above</h3></div>
+        <div class="chart-card-header"><h3 data-eyebrow="Breakdown · Disease">Full disease breakdown — Under 5 vs 5 and above</h3></div>
         <div class="chart-body" style="padding:0;overflow-x:auto;">
           <table class="breakdown-table">
             <thead>

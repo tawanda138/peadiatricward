@@ -4829,7 +4829,7 @@ function loginSuccess(user) {
   showWelcomeBanner(user);
 
   // Land on first allowed tab after login
-  const firstTab = (user.tabs || ROLE_DEFAULTS[user.role] || ['viz'])[0] || 'viz';
+  const firstTab = 'viz';
   switchTab(firstTab);
 }
 

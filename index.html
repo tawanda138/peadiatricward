@@ -1627,6 +1627,202 @@
   .pr-hiv-btn.sel-unk { border-color:#b08800; background:#fff3cd; color:#b08800; }
   .pr-hiv-btn.sel-art { border-color:#2c5f8a; background:#dae8f8; color:#2c5f8a; }
 
+  /* ══════════════════════════════════════════════════════
+     RESPONSIVE TOP BAR + MAHIS-STYLE NAV DRAWER
+     ══════════════════════════════════════════════════════ */
+
+  /* Mobile/tablet top bar (green header, like image 1) */
+  .mhs-topbar {
+    display: none; /* shown only on small/medium screens */
+    position: sticky; top: 0; z-index: 500;
+    background: linear-gradient(135deg,#1a5c3a,#0e3a22);
+    color: white;
+    align-items: center; gap: 14px;
+    padding: 12px 16px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.18);
+  }
+  .mhs-topbar-burger {
+    background: none; border: none; color: white; cursor: pointer;
+    padding: 6px; border-radius: 6px; display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s; flex-shrink: 0;
+  }
+  .mhs-topbar-burger:hover { background: rgba(255,255,255,0.15); }
+  .mhs-topbar-titles { display: flex; flex-direction: column; min-width: 0; }
+  .mhs-topbar-title {
+    font-family: 'IBM Plex Sans', sans-serif; font-weight: 700; font-size: 1.05rem;
+    letter-spacing: 0.01em; color: white; line-height: 1.2;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .mhs-topbar-sub {
+    font-size: 0.7rem; color: rgba(255,255,255,0.85);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    display: flex; gap: 6px; align-items: center;
+  }
+  .mhs-topbar-sub .mhs-sep { color: rgba(255,255,255,0.4); }
+  .mhs-topbar-sub .mhs-date { color: #8be0a6; font-weight: 600; }
+
+  /* ── Drawer overlay ── */
+  .mhs-drawer-overlay {
+    display: none; position: fixed; inset: 0; z-index: 9500;
+    background: rgba(15,25,20,0.45);
+  }
+  .mhs-drawer-overlay.open { display: block; animation: mhsFade 0.18s ease; }
+  @keyframes mhsFade { from{opacity:0} to{opacity:1} }
+
+  /* ── Drawer panel ── */
+  .mhs-drawer {
+    position: fixed; top: 0; left: 0; height: 100vh;
+    width: min(86vw, 360px);
+    background: #f3f4f1;
+    z-index: 9600;
+    display: flex; flex-direction: column;
+    transform: translateX(-105%);
+    transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
+    box-shadow: 8px 0 28px rgba(0,0,0,0.25);
+    overflow-y: auto;
+  }
+  .mhs-drawer.open { transform: translateX(0); }
+
+  /* Drawer header (green) */
+  .mhs-drawer-hdr {
+    background: linear-gradient(135deg,#1a5c3a,#0e3a22);
+    padding: 18px 18px 22px;
+    position: relative;
+  }
+  .mhs-drawer-hdr-top {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .mhs-drawer-badge {
+    background: rgba(255,255,255,0.16);
+    color: #d8f5e3;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6rem; font-weight: 700; letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 4px 10px; border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.18);
+  }
+  .mhs-drawer-close {
+    background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.2);
+    color: white; width: 30px; height: 30px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: background 0.15s; flex-shrink: 0;
+  }
+  .mhs-drawer-close:hover { background: rgba(255,255,255,0.28); }
+  .mhs-drawer-title {
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 1.5rem; font-weight: 800;
+    color: white; letter-spacing: -0.01em; margin-bottom: 4px;
+  }
+  .mhs-drawer-hint { font-size: 0.78rem; color: rgba(255,255,255,0.75); }
+  .mhs-drawer-avatar {
+    position: absolute; top: 18px; right: 18px;
+    width: 38px; height: 38px; border-radius: 50%;
+    background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.25);
+    display: none; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 0.82rem; color: white;
+    font-family: 'IBM Plex Sans', sans-serif;
+  }
+  .mhs-drawer-avatar.show { display: flex; }
+
+  /* Drawer body — nav rows */
+  .mhs-drawer-body { padding: 14px; display: flex; flex-direction: column; gap: 9px; flex: 1; }
+
+  .mhs-row {
+    background: white; border-radius: 14px; border: 1px solid #e7e9e4;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    overflow: hidden; transition: box-shadow 0.15s;
+  }
+  .mhs-row:hover { box-shadow: 0 3px 10px rgba(0,0,0,0.07); }
+
+  .mhs-row-main {
+    display: flex; align-items: center; gap: 14px;
+    padding: 15px 16px; cursor: pointer; user-select: none;
+    color: #1a2a1f; font-family: 'IBM Plex Sans', sans-serif;
+    font-weight: 700; font-size: 0.98rem; letter-spacing: -0.01em;
+  }
+  .mhs-row-main .mhs-row-icon {
+    width: 22px; height: 22px; flex-shrink: 0; color: #1a5c3a;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .mhs-row-main .mhs-row-label { flex: 1; min-width: 0; }
+  .mhs-row-main .mhs-row-chevron {
+    width: 18px; height: 18px; color: #9aa39c; flex-shrink: 0;
+    transition: transform 0.2s;
+  }
+  .mhs-row.expanded .mhs-row-main .mhs-row-chevron { transform: rotate(180deg); }
+  .mhs-row.active-row .mhs-row-main { background: #eaf6ee; color: #145230; }
+  .mhs-row.active-row .mhs-row-main .mhs-row-icon { color: #145230; }
+
+  /* Expandable sub-list */
+  .mhs-row-sub {
+    display: none; flex-direction: column;
+    border-top: 1px solid #eef1ec; padding: 6px 10px 10px;
+    gap: 2px;
+  }
+  .mhs-row.expanded .mhs-row-sub { display: flex; }
+  .mhs-subitem {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 14px 11px 40px; border-radius: 10px;
+    color: #4a564d; font-size: 0.88rem; font-weight: 500;
+    cursor: pointer; transition: background 0.12s, color 0.12s;
+  }
+  .mhs-subitem:hover { background: #f3f8f4; color: #145230; }
+  .mhs-subitem.active-sub { background: #d9f0e2; color: #145230; font-weight: 700; }
+  .mhs-subitem .mhs-sub-dot {
+    width: 6px; height: 6px; border-radius: 50%; background: #c4cdc6; flex-shrink: 0;
+  }
+  .mhs-subitem.active-sub .mhs-sub-dot { background: #1a5c3a; }
+
+  /* Drawer footer (user / sign out) */
+  .mhs-drawer-footer {
+    padding: 14px; border-top: 1px solid #e7e9e4;
+    display: none; flex-direction: column; gap: 8px;
+  }
+  .mhs-drawer-footer.show { display: flex; }
+  .mhs-footer-user {
+    display: flex; align-items: center; gap: 10px;
+    background: white; border-radius: 12px; border: 1px solid #e7e9e4;
+    padding: 10px 12px;
+  }
+  .mhs-footer-avatar {
+    width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+    background: linear-gradient(135deg,#1a5c3a,#2ecc71);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.74rem; font-weight: 800; color: white;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .mhs-footer-info { flex: 1; min-width: 0; }
+  .mhs-footer-name { font-size: 0.84rem; font-weight: 700; color: #1a2a1f; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mhs-footer-role { font-size: 0.66rem; color: #6b756e; font-family: 'IBM Plex Mono', monospace; }
+  .mhs-footer-signout {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    background: #fdf0f0; border: 1px solid #f5c0c0; color: #c0392b;
+    border-radius: 12px; padding: 11px; font-weight: 700; font-size: 0.84rem;
+    cursor: pointer; transition: background 0.15s; font-family: 'IBM Plex Sans', sans-serif;
+  }
+  .mhs-footer-signout:hover { background: #fde0e0; }
+
+  /* ══ Responsive switch points ══
+     Desktop (>1024px): keep existing left sidebar, hide mobile topbar/drawer.
+     Tablet & phone (<=1024px): hide left sidebar, show green top bar + drawer.
+  */
+  @media (max-width: 1024px) {
+    .sidebar { display: none !important; }
+    .mhs-topbar { display: flex; }
+    body { display: block; }
+    .app-shell { display: block; width: 100%; }
+    .main-content { width: 100%; }
+  }
+  @media (min-width: 1025px) {
+    .mhs-topbar, .mhs-drawer, .mhs-drawer-overlay { display: none !important; }
+  }
+
+  @media (max-width: 480px) {
+    .mhs-topbar-title { font-size: 0.95rem; }
+    .mhs-drawer { width: 88vw; }
+    .mhs-drawer-title { font-size: 1.3rem; }
+  }
+
 </style>
 </head>
 <body>
@@ -1733,6 +1929,53 @@
 </div>
 
 <div class="app-shell">
+
+<!-- ════════════ MOBILE/TABLET TOP BAR (MaHIS style) ════════════ -->
+<div class="mhs-topbar" id="mhsTopbar">
+  <button class="mhs-topbar-burger" onclick="mhsOpenDrawer()" title="Open menu" aria-label="Open menu">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+  <div class="mhs-topbar-titles">
+    <div class="mhs-topbar-title">Ward Worksheet</div>
+    <div class="mhs-topbar-sub">
+      <span id="mhsTopbarWard">Machinga District Hospital</span>
+      <span class="mhs-sep">|</span>
+      <span class="mhs-date" id="mhsTopbarDate">—</span>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ NAV DRAWER OVERLAY + PANEL ════════════ -->
+<div class="mhs-drawer-overlay" id="mhsDrawerOverlay" onclick="mhsCloseDrawer()"></div>
+<nav class="mhs-drawer" id="mhsDrawer" aria-label="Main navigation">
+  <div class="mhs-drawer-hdr">
+    <div class="mhs-drawer-hdr-top">
+      <span class="mhs-drawer-badge">MAHIS NAVIGATION</span>
+      <button class="mhs-drawer-close" onclick="mhsCloseDrawer()" title="Close menu" aria-label="Close menu">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="mhs-drawer-title">Workspace Menu</div>
+    <div class="mhs-drawer-hint">Select a section below</div>
+    <div class="mhs-drawer-avatar" id="mhsDrawerAvatar">?</div>
+  </div>
+
+  <div class="mhs-drawer-body" id="mhsDrawerBody">
+    <!-- Rows are generated by JS from the sidebar nav items -->
+  </div>
+
+  <div class="mhs-drawer-footer" id="mhsDrawerFooter">
+    <div class="mhs-footer-user">
+      <div class="mhs-footer-avatar" id="mhsFooterAvatar">?</div>
+      <div class="mhs-footer-info">
+        <div class="mhs-footer-name" id="mhsFooterName">—</div>
+        <div class="mhs-footer-role" id="mhsFooterRole">—</div>
+      </div>
+    </div>
+    <button class="mhs-footer-signout" onclick="mhsCloseDrawer();doSignOut()">🚪 Sign Out</button>
+  </div>
+</nav>
+
 
 <!-- ════════════ SIDEBAR ════════════ -->
 <aside class="sidebar">
@@ -4908,6 +5151,7 @@ function doSignOut(silent = false) {
 
   // Show login overlay
   document.getElementById('loginOverlay').classList.remove('hidden');
+  if (typeof mhsBuildDrawer === 'function') { mhsBuildDrawer(); mhsUpdateTopbar(); }
 }
 
 // ── User dropdown ─────────────────────────────────────
@@ -5177,8 +5421,201 @@ function showWelcomeBanner(user) {
   setTimeout(() => b.remove(), 3500);
 }
 
-// ── Boot: show login on load ──────────────────────────
-// (overlay is shown by default via HTML; nothing extra needed)
+// ══════════════════════════════════════════════════════
+// MAHIS-STYLE RESPONSIVE NAV DRAWER (mobile / tablet)
+// ══════════════════════════════════════════════════════
+
+// Map of sidebar tab -> { label, group }
+// "group" rows render as expandable sections; non-group rows are direct links.
+const MHS_NAV_STRUCTURE = [
+  { type:'link',  tab:'entry',   label:'Data Entry',
+    icon:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>' },
+  { type:'group', label:'Reports', icon:'<path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>',
+    items:[
+      { tab:'viz',      label:'Dashboard' },
+      { tab:'explorer', label:'Visualizer' },
+    ]
+  },
+  { type:'group', label:'Records', icon:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>',
+    items:[
+      { tab:'audit',         label:'Death Audit' },
+      { tab:'patientRecord', label:'Patient Record' },
+    ]
+  },
+  { type:'link',  tab:'roster',  label:'Duty Roster',
+    icon:'<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>' },
+  { type:'group', label:'DHIS2', icon:'<polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/>',
+    items:[
+      { tab:'dhis2',     label:'DHIS2 Sync' },
+      { tab:'deBrowser', label:'Data Elements' },
+    ]
+  },
+  { type:'group', label:'Settings', icon:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
+    items:[
+      { action:'extract', label:'Extract from Photo' },
+      { action:'clear',   label:'Clear All', tab:'entry' },
+      { action:'print',   label:'Print' },
+    ]
+  },
+  { type:'group', label:'Manage Printers', icon:'<rect x="6" y="2" width="12" height="8" rx="1"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>',
+    items:[
+      { action:'extract', label:'Extract Worksheet from Photo' },
+    ]
+  },
+];
+
+const MHS_MONTHS_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function mhsTodayLabel() {
+  const d = new Date();
+  return `${MHS_MONTHS_FULL[d.getMonth()]} ${String(d.getDate()).padStart(2,'0')}, ${d.getFullYear()}`;
+}
+
+function mhsBuildDrawer() {
+  const body = document.getElementById('mhsDrawerBody');
+  if (!body) return;
+  body.innerHTML = '';
+
+  // Determine which tabs the current user can access (mirrors switchTab logic)
+  let allowed = null;
+  if (currentUser) {
+    allowed = [...(currentUser.tabs || ROLE_DEFAULTS[currentUser.role] || ['viz'])];
+    ['patientRecord'].forEach(t => { if (!allowed.includes(t)) allowed.push(t); });
+  }
+
+  const activeTab = (function(){
+    for (const t of ['entry','viz','explorer','audit','roster','dhis2','deBrowser','patientRecord']) {
+      const el = document.getElementById(t+'Page');
+      if (el && el.classList.contains('active')) return t;
+    }
+    return 'entry';
+  })();
+
+  MHS_NAV_STRUCTURE.forEach(entry => {
+    if (entry.type === 'link') {
+      if (allowed && !allowed.includes(entry.tab)) return;
+      const row = document.createElement('div');
+      row.className = 'mhs-row' + (activeTab===entry.tab ? ' active-row' : '');
+      row.innerHTML = `
+        <div class="mhs-row-main" onclick="mhsNavigate('${entry.tab}')">
+          <span class="mhs-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22">${entry.icon}</svg></span>
+          <span class="mhs-row-label">${entry.label}</span>
+        </div>`;
+      body.appendChild(row);
+      return;
+    }
+
+    // Group: filter sub items by access
+    const visibleItems = entry.items.filter(it => {
+      if (it.tab && allowed && !allowed.includes(it.tab)) return false;
+      return true;
+    });
+    if (!visibleItems.length) return;
+
+    const hasActiveChild = visibleItems.some(it => it.tab === activeTab);
+    const row = document.createElement('div');
+    row.className = 'mhs-row' + (hasActiveChild ? ' expanded active-row' : '');
+
+    const subHtml = visibleItems.map(it => {
+      const onclick = it.action ? `mhsRunAction('${it.action}','${it.tab||''}')` : `mhsNavigate('${it.tab}')`;
+      const cls = (it.tab===activeTab) ? 'mhs-subitem active-sub' : 'mhs-subitem';
+      return `<div class="${cls}" onclick="${onclick}"><span class="mhs-sub-dot"></span><span>${it.label}</span></div>`;
+    }).join('');
+
+    row.innerHTML = `
+      <div class="mhs-row-main" onclick="mhsToggleGroup(this)">
+        <span class="mhs-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22">${entry.icon}</svg></span>
+        <span class="mhs-row-label">${entry.label}</span>
+        <svg class="mhs-row-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="mhs-row-sub">${subHtml}</div>`;
+    body.appendChild(row);
+  });
+
+  // Footer (user + sign out)
+  const footer = document.getElementById('mhsDrawerFooter');
+  const avatarEl = document.getElementById('mhsDrawerAvatar');
+  if (currentUser) {
+    const initials = currentUser.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    document.getElementById('mhsFooterAvatar').textContent = initials;
+    document.getElementById('mhsFooterName').textContent   = currentUser.name;
+    document.getElementById('mhsFooterRole').textContent   = `${currentUser.role} · ${currentUser.ward}`;
+    avatarEl.textContent = initials;
+    avatarEl.classList.add('show');
+    footer.classList.add('show');
+  } else {
+    avatarEl.classList.remove('show');
+    footer.classList.remove('show');
+  }
+}
+
+function mhsToggleGroup(el) {
+  const row = el.closest('.mhs-row');
+  const wasExpanded = row.classList.contains('expanded');
+  // Collapse other groups for a cleaner accordion feel
+  document.querySelectorAll('#mhsDrawerBody .mhs-row.expanded').forEach(r => { if (r!==row) r.classList.remove('expanded'); });
+  row.classList.toggle('expanded', !wasExpanded);
+}
+
+function mhsNavigate(tab) {
+  if (!tab) return;
+  switchTab(tab);
+  mhsCloseDrawer();
+  mhsBuildDrawer();
+}
+
+function mhsRunAction(action, tab) {
+  mhsCloseDrawer();
+  if (action === 'extract') openPhotoModal();
+  else if (action === 'clear') { if (tab) switchTab(tab); setTimeout(clearAll, 80); }
+  else if (action === 'print') window.print();
+}
+
+function mhsOpenDrawer() {
+  mhsBuildDrawer();
+  document.getElementById('mhsDrawer').classList.add('open');
+  document.getElementById('mhsDrawerOverlay').classList.add('open');
+}
+function mhsCloseDrawer() {
+  document.getElementById('mhsDrawer').classList.remove('open');
+  document.getElementById('mhsDrawerOverlay').classList.remove('open');
+}
+
+function mhsUpdateTopbar() {
+  const wardEl = document.getElementById('ward');
+  const dateEl = document.getElementById('mhsTopbarDate');
+  const wardSpan = document.getElementById('mhsTopbarWard');
+  if (dateEl) dateEl.textContent = mhsTodayLabel();
+  if (wardSpan) {
+    wardSpan.textContent = currentUser ? currentUser.ward : (wardEl ? wardEl.value : 'Machinga District Hospital');
+  }
+}
+
+// Keep drawer/topbar in sync whenever the period/ward changes or login state changes
+const _mhsOrigUpdateSub = updateSub;
+updateSub = function() {
+  _mhsOrigUpdateSub.apply(this, arguments);
+  mhsUpdateTopbar();
+};
+
+const _mhsOrigLoginSuccess = loginSuccess;
+loginSuccess = function(user) {
+  _mhsOrigLoginSuccess.apply(this, arguments);
+  mhsUpdateTopbar();
+  mhsBuildDrawer();
+};
+
+const _mhsOrigSwitchTab = switchTab;
+switchTab = function(tab) {
+  _mhsOrigSwitchTab.apply(this, arguments);
+  mhsBuildDrawer();
+};
+
+window.addEventListener('DOMContentLoaded', () => {
+  mhsUpdateTopbar();
+  mhsBuildDrawer();
+});
+
 
 // ══════════════════════════════════════════════════════
 // DEATH AUDIT — IndexedDB backed

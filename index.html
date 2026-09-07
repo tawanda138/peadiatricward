@@ -1911,6 +1911,7 @@
               <option value="All Wards">All Wards</option>
               <option>Female Ward</option><option>Male Ward</option>
               <option>Paediatric Ward</option><option>Maternity Ward</option><option>Surgical Ward</option>
+              <option>Paying Ward</option>
             </select>
             <select id="addRole" onchange="adminPreviewTabs(this.value)">
               <option>Data Officer</option>
@@ -2091,6 +2092,7 @@
             <select id="ward" onchange="updateSub()">
               <option>Female Ward</option><option>Male Ward</option>
               <option>Paediatric Ward</option><option>Maternity Ward</option><option>Surgical Ward</option>
+              <option>Paying Ward</option>
             </select>
           </div>
           <div class="field-group"><label>Month</label>
@@ -2223,6 +2225,7 @@
             <option value="all">All Wards</option>
             <option>Female Ward</option><option>Male Ward</option>
             <option>Paediatric Ward</option><option>Maternity Ward</option><option>Surgical Ward</option>
+            <option>Paying Ward</option>
           </select>
         </div>
       </div>
@@ -2938,7 +2941,7 @@
   <div class="roster-header">
     <div>
       <h2 class="roster-title">📅 2026 OPD Weekend & Holiday Duty Roster</h2>
-      <p class="roster-sub">Machinga District Hospital — Under 5 &amp; Over 5 On-Call Schedule · Jan–Aug 2026</p>
+      <p class="roster-sub">Machinga District Hospital — Under 5 &amp; Over 5 On-Call Schedule · Jan 2026 – Jan 2027</p>
     </div>
     <button class="roster-add-btn" onclick="openRosterModal()">+ Add Entry</button>
   </div>
@@ -3076,6 +3079,7 @@
               <option value="all">All Wards (aggregate)</option>
               <option>Female Ward</option><option>Male Ward</option>
               <option>Paediatric Ward</option><option>Maternity Ward</option><option>Surgical Ward</option>
+              <option>Paying Ward</option>
             </select>
           </div>
         </div>
@@ -3268,6 +3272,7 @@
           <option>Paediatric Ward</option>
           <option>Maternity Ward</option>
           <option>Surgical Ward</option>
+          <option>Paying Ward</option>
         </select>
       </div>
       <div style="display:flex;align-items:center;gap:6px;">
@@ -4193,6 +4198,7 @@ const VZ_WARDS  = [
   {id:'Paediatric Ward',icon:'👶'},
   {id:'Maternity Ward',icon:'🤰'},
   {id:'Surgical Ward', icon:'🔪'},
+  {id:'Paying Ward',   icon:'💳'},
 ];
 
 const vzSel = {
@@ -6329,6 +6335,36 @@ const ROSTER_SEED = [
   { id:'r38', date:'2026-08-15', under5:'Rachel',   over5:'Happy'    },
   { id:'r39', date:'2026-08-22', under5:'Bernard',  over5:'Grace'    },
   { id:'r40', date:'2026-08-29', under5:'Mervin',   over5:'Martha'   },
+  // ── Sep 2026–Jan 2027 (from uploaded roaster.xlsx) ───────
+  { id:'r41', date:'2026-09-05', under5:'Mervin',   over5:'Happy'    },
+  { id:'r42', date:'2026-09-12', under5:'Tawanda',  over5:'Rachel'   },
+  { id:'r43', date:'2026-09-19', under5:'Bernard',  over5:'Martha'   },
+  { id:'r44', date:'2026-09-26', under5:'Grace',    over5:'King'     },
+  { id:'r45', date:'2026-10-03', under5:'Jack',     over5:'Beatrice' },
+  { id:'r46', date:'2026-10-10', under5:'Billy',    over5:'Mervin'   },
+  { id:'r47', date:'2026-10-15', under5:'Happy',    over5:'Tawanda'  },
+  { id:'r48', date:'2026-10-17', under5:'Rachel',   over5:'Bernard'  },
+  { id:'r49', date:'2026-10-24', under5:'Martha',   over5:'Grace'    },
+  { id:'r50', date:'2026-10-31', under5:'King',     over5:'Jack'     },
+  { id:'r51', date:'2026-11-07', under5:'Beatrice', over5:'Billy'    },
+  { id:'r52', date:'2026-11-14', under5:'Mervin',   over5:'Happy'    },
+  { id:'r53', date:'2026-11-21', under5:'Tawanda',  over5:'Rachel'   },
+  { id:'r54', date:'2026-11-28', under5:'Bernard',  over5:'Martha'   },
+  { id:'r55', date:'2026-12-05', under5:'Grace',    over5:'King'     },
+  { id:'r56', date:'2026-12-12', under5:'Jack',     over5:'Beatrice' },
+  { id:'r57', date:'2026-12-19', under5:'Billy',    over5:'Mervin'   },
+  { id:'r58', date:'2026-12-21', under5:'Happy',    over5:'Tawanda'  },
+  { id:'r59', date:'2026-12-22', under5:'Rachel',   over5:'Bernard'  },
+  { id:'r60', date:'2026-12-23', under5:'Martha',   over5:'Grace'    },
+  { id:'r61', date:'2026-12-24', under5:'King',     over5:'Jack'     },
+  { id:'r62', date:'2026-12-25', under5:'Beatrice', over5:'Billy'    },
+  { id:'r63', date:'2026-12-26', under5:'Mervin',   over5:'Happy'    },
+  { id:'r64', date:'2026-12-28', under5:'Tawanda',  over5:'Rachel'   },
+  { id:'r65', date:'2026-12-29', under5:'Bernard',  over5:'Martha'   },
+  { id:'r66', date:'2026-12-30', under5:'Grace',    over5:'King'     },
+  { id:'r67', date:'2026-12-31', under5:'Jack',     over5:'Beatrice' },
+  { id:'r68', date:'2027-01-01', under5:'Billy',    over5:'Mervin'   },
+  { id:'r69', date:'2027-01-02', under5:'Happy',    over5:'Tawanda'  },
 ];
 
 function rosterLoad() {
